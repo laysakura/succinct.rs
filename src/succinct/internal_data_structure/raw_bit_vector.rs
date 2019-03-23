@@ -7,16 +7,23 @@ pub struct RawBitVector {
 }
 
 impl RawBitVector {
+    /// Makes a bit vector of `length`, willed with 0.
+    ///
+    /// # Panics
+    /// When _`length` == 0_.
     pub fn from_length(length: u64) -> RawBitVector {
         if length == 0 { panic!("length must be > 0.") };
 
         let last_byte_len_or_0 = (length % 8) as u8;
+        let last_byte_len = if last_byte_len_or_0 == 0 { 8 } else { last_byte_len_or_0 };
+
         RawBitVector {
-            byte_vec: vec![0; (length / 8 + 1) as usize],
-            last_byte_len: if last_byte_len_or_0 == 0 { 8 } else { last_byte_len_or_0 },
+            byte_vec: vec![0; ((length - 1) / 8 + 1) as usize],
+            last_byte_len,
         }
     }
 
+    /// Makes a bit vector from `BitVectorString` representation.
     pub fn from_str(bit_vector_str: &BitVectorString) -> RawBitVector {
         let mut rbv = RawBitVector::from_length(bit_vector_str.s.len() as u64);
         for (i, c) in bit_vector_str.s.chars().enumerate() {
@@ -25,6 +32,10 @@ impl RawBitVector {
         rbv
     }
 
+    /// Returns i-th bit.
+    ///
+    /// # Panics
+    /// When _`i` >= `self.length()`_.
     pub fn access(&self, i: u64) -> bool {
         self.validate_index(i);
         let byte = self.byte_vec[(i / 8) as usize];
@@ -41,6 +52,10 @@ impl RawBitVector {
         }
     }
 
+    /// Set 1 to i-th bit.
+    ///
+    /// # Panics
+    /// When _`i` >= `self.length()`_.
     pub fn set_bit(&mut self, i: u64) {
         self.validate_index(i);
         let byte = self.byte_vec[(i / 8) as usize];
@@ -57,12 +72,98 @@ impl RawBitVector {
         }
     }
 
-    fn bit_length(&self) -> u64 {
+    /// Returns length.
+    pub fn length(&self) -> u64 {
         (self.byte_vec.len() as u64 - 1) * 8 + (self.last_byte_len as u64)
     }
 
+    /// Returns popcount of whole this BitVector.
+    pub fn popcount(&self) -> u64 {
+        self.byte_vec.iter().fold(0, |popcnt: u64, byte| byte.count_ones() as u64 + popcnt)
+    }
+
+    /// Makes another RawBitVector from _[`i`, `i` + `size`)_ of self.
+    ///
+    /// # Panics
+    /// When:
+    ///
+    /// - _`i` + `size` >= `self.length()`_
+    /// - _`size` == 0_
+    pub fn copy_sub(&self, i: u64, size: u64) -> RawBitVector {
+        if i + size > self.length() { panic!("i + size must be <= self.length(); i = {}, size = {}, self.length() = {}", i, size, self.length()) };
+        if size == 0 { panic!("length must be > 0") };
+
+        let mut sub_byte_vec: Vec<u8> = Vec::with_capacity(size as usize / 8 + 1);
+
+        // Memo for implementation: 
+        // Assume self.byte_vec == 00000000 11111111 00000000 11111
+        
+        let last_byte_len = if i % 8 == 0 && size % 8 == 0 {
+            // When i % 8 == 0 && size % 8 == 0
+            // 00000000 11111111 00000000 11111
+            //          ^                ^
+            //          i=8              i+size = 8+16
+            //          |        |       |
+            //             j=1      j=2
+            //           <-- iterate ---->
+            //
+            // ; last_byte_len = 8
+            for j in (i / 8).. (i + size) / 8 {
+                sub_byte_vec.push(self.byte_vec[j as usize]);
+            }
+            8
+        } else if i % 8 == 0 && size % 8 != 0 {
+            // When i % 8 == 0 && size % 8 == 0
+            // 00000000 11111111 00000000 11111
+            //          ^                  ^
+            //          i=8                i+size = 8+18
+            //          |        |       |  |
+            //             j=1      j=2   j=3
+            //           <-- iterate ----><->
+            //
+            // ; last_byte_len = size % 8
+            for j in (i / 8).. (i + size) / 8 {
+                sub_byte_vec.push(self.byte_vec[j as usize]);
+            }
+            let last_byte = self.byte_vec[((i + size) / 8) as usize];
+            let bits_to_use_from_last_byte = size % 8;
+            let copied_byte = last_byte >> (8 - bits_to_use_from_last_byte) << (8 - bits_to_use_from_last_byte);
+            sub_byte_vec.push(copied_byte);
+            size % 8
+        } else {
+            // When i % 8 != 0 && (i + size) % 8 != 0
+            // 00000000 11111111 00000000 11111
+            //                 ^           ^
+            //                 i=15        i+size = 15+11
+            //                 ||        | |
+            //                j=1   j=2   j=3
+            //                 <- iterate -->
+            //
+            // ; last_byte_len = size % 8
+            for j in (i / 8).. (i + size) / 8 {
+                if (j + 1) * 8 < i + size {
+                    let (byte1, byte2) = (self.byte_vec[j as usize], self.byte_vec[(j + 1) as usize]);
+                    let bits_to_use_from_byte1 = 8 - i % 8;
+                    let copied_byte = (byte1 << (8 - bits_to_use_from_byte1)) | (byte2 >> bits_to_use_from_byte1);
+                    sub_byte_vec.push(copied_byte);
+                } else {
+                    let last_byte = self.byte_vec[j as usize];
+                    let bits_to_use_from_last_byte = 8 - i % 8;
+                    let copied_byte = last_byte << (8 - bits_to_use_from_last_byte);
+                    sub_byte_vec.push(copied_byte);
+                }
+            }
+            size % 8
+        } as u8;
+
+        RawBitVector {
+            byte_vec: sub_byte_vec,
+            last_byte_len,
+        }
+    }
+
     fn validate_index(&self, i: u64) {
-        if i >= self.bit_length() { panic!("`i` must be smaller than {} (length of RawBitVector)", self.bit_length()) };
+        if i >= self.length() { panic!("`i` must be smaller than {} (length of RawBitVector)", self.length()) };
     }
 }
 
@@ -143,7 +244,7 @@ mod from_str_success_tests {
             #[test]
             fn $name() {
                 let (in_s, index_bit_pairs) = $value;
-                let rbv = RawBitVector::from_str(&BitVectorString { s: String::from(in_s) });
+                let rbv = RawBitVector::from_str(&BitVectorString::new(in_s));
                 for IndexBitPair(i, bit) in index_bit_pairs {
                     assert_eq!(rbv.access(i), bit);
                 }
@@ -250,6 +351,24 @@ mod from_str_failure_tests {
 }
 
 #[cfg(test)]
+mod length_success_tests {
+    use super::RawBitVector;
+
+    #[test]
+    fn test() {
+        for length in 1..= 1 << 16 {
+            let rbv = RawBitVector::from_length(length);
+            assert_eq!(rbv.length(), length);
+        }
+     }
+}
+
+#[cfg(test)]
+mod length_failure_tests {
+    // Nothing to do
+}
+
+#[cfg(test)]
 mod access_success_tests {
     // well-tested in from_length_success_tests & from_str_success_tests
 }
@@ -267,6 +386,43 @@ mod access_failure_tests {
 }
 
 #[cfg(test)]
+mod popcount_success_tests {
+    use super::{RawBitVector, BitVectorString};
+    
+    macro_rules! parameterized_tests {
+        ($($name:ident: $value:expr,)*) => {
+        $(
+            #[test]
+            fn $name() {
+                let (in_s, expected_popcount) = $value;
+                let rbv = RawBitVector::from_str(&BitVectorString::new(in_s));
+                assert_eq!(rbv.popcount(), expected_popcount);
+            }
+        )*
+        }
+    }
+
+    parameterized_tests! {
+        t1_1: ("0", 0),
+
+        t8_1: ("00000000", 0),
+        t8_2: ("01010101", 4),
+        t8_3: ("10101010", 4),
+        t8_4: ("11111111", 8),
+
+        t9_1: ("000000000", 0),
+        t9_2: ("010101010", 4),
+        t9_3: ("101010101", 5),
+        t9_4: ("111111111", 9),
+    }
+}
+
+#[cfg(test)]
+mod popcount_failure_tests {
+    // Nothing to do
+}
+
+#[cfg(test)]
 mod set_bit_success_tests {
     use crate::succinct::bit_vector::BitVectorString;
     use super::RawBitVector;
@@ -279,7 +435,7 @@ mod set_bit_success_tests {
             #[test]
             fn $name() {
                 let (in_s, bits_to_set, index_bit_pairs) = $value;
-                let mut rbv = RawBitVector::from_str(&BitVectorString { s: String::from(in_s) });
+                let mut rbv = RawBitVector::from_str(&BitVectorString::new(in_s));
 
                 for i in bits_to_set { rbv.set_bit(i) }
 
@@ -368,5 +524,98 @@ mod set_bit_failure_tests {
     fn set_bit_over_upper_bound() {
         let mut rbv = RawBitVector::from_length(2);
         rbv.set_bit(2);
+    }
+}
+
+#[cfg(test)]
+mod copy_sub_success_tests {
+    use super::{RawBitVector, BitVectorString};
+    
+    macro_rules! parameterized_tests {
+        ($($name:ident: $value:expr,)*) => {
+        $(
+            #[test]
+            fn $name() {
+                let (s, i, size, expected_bit_vec) = $value;
+                let rbv = RawBitVector::from_str(&BitVectorString::new(s));
+                let copied_rbv = rbv.copy_sub(i, size);
+
+                assert_eq!(copied_rbv.length(), expected_bit_vec.len() as u64);
+                for (i, expected_bit) in expected_bit_vec.iter().enumerate() {
+                    assert_eq!(copied_rbv.access(i as u64), *expected_bit);
+                }
+            }
+        )*
+        }
+    }
+
+    parameterized_tests! {
+        t1_1: ("0", 0, 1, vec![false]),
+
+        t8_1_1: ("01000101", 0, 1, vec![false]),
+        t8_1_2: ("01000101", 0, 2, vec![false, true]),
+        t8_1_3: ("01000101", 0, 3, vec![false, true, false]),
+        t8_1_4: ("01000101", 0, 4, vec![false, true, false, false]),
+        t8_1_5: ("01000101", 0, 5, vec![false, true, false, false, false]),
+        t8_1_6: ("01000101", 0, 6, vec![false, true, false, false, false, true]),
+        t8_1_7: ("01000101", 0, 7, vec![false, true, false, false, false, true, false]),
+        t8_1_8: ("01000101", 0, 8, vec![false, true, false, false, false, true, false, true]),
+
+        t8_2_1: ("01000101", 7, 1, vec![true]),
+
+        t9_1_1: ("010001010", 0, 1, vec![false]),
+        t9_1_2: ("010001010", 0, 2, vec![false, true]),
+        t9_1_3: ("010001010", 0, 3, vec![false, true, false]),
+        t9_1_4: ("010001010", 0, 4, vec![false, true, false, false]),
+        t9_1_5: ("010001010", 0, 5, vec![false, true, false, false, false]),
+        t9_1_6: ("010001010", 0, 6, vec![false, true, false, false, false, true]),
+        t9_1_7: ("010001010", 0, 7, vec![false, true, false, false, false, true, false]),
+        t9_1_8: ("010001010", 0, 8, vec![false, true, false, false, false, true, false, true]),
+        t9_1_9: ("010001010", 0, 9, vec![false, true, false, false, false, true, false, true, false]),
+
+        t9_2_1: ("010001010", 7, 1, vec![true]),
+        t9_2_2: ("010001010", 7, 2, vec![true, false]),
+
+        t9_3_1: ("010001010", 8, 1, vec![false]),
+    }
+}
+
+#[cfg(test)]
+mod copy_sub_failure_tests {
+    use super::{RawBitVector, BitVectorString};
+    
+    macro_rules! parameterized_tests {
+        ($($name:ident: $value:expr,)*) => {
+        $(
+            #[test]
+            #[should_panic]
+            fn $name() {
+                let (s, i, size) = $value;
+                let rbv = RawBitVector::from_str(&BitVectorString::new(s));
+                let _ = rbv.copy_sub(i, size);
+            }
+        )*
+        }
+    }
+
+    parameterized_tests! {
+        t1_1: ("0", 0, 0),
+        t1_2: ("0", 0, 2),
+        t1_3: ("0", 1, 1),
+
+        t8_1_1: ("01000101", 0, 0),
+        t8_1_2: ("01000101", 0, 9),
+
+        t8_2_1: ("01000101", 7, 0),
+        t8_2_2: ("01000101", 7, 2),
+
+        t9_1_1: ("010001010", 0, 0),
+        t9_1_2: ("010001010", 0, 10),
+
+        t9_2_1: ("010001010", 7, 0),
+        t9_2_2: ("010001010", 7, 3),
+
+        t9_3_1: ("010001010", 8, 0),
+        t9_3_2: ("010001010", 8, 2),
     }
 }
