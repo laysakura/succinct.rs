@@ -1,5 +1,7 @@
+use std::fmt;
 use crate::succinct::bit_vector::BitVectorString;
 
+#[derive(PartialEq, Eq, Debug)]
 /// Bit vector of arbitrary length (actually the length is limited to _[1, 2^64)_).
 pub struct RawBitVector {
     byte_vec: Vec<u8>,
@@ -97,73 +99,67 @@ impl RawBitVector {
 
         // Memo for implementation: 
         // Assume self.byte_vec == 00000000 11111111 00000000 11111
-        
-        let last_byte_len = if i % 8 == 0 && size % 8 == 0 {
-            // When i % 8 == 0 && size % 8 == 0
-            // 00000000 11111111 00000000 11111
-            //          ^                ^
-            //          i=8              i+size = 8+16
-            //          |        |       |
-            //             j=1      j=2
-            //           <-- iterate ---->
-            //
-            // ; last_byte_len = 8
-            for j in (i / 8).. (i + size) / 8 {
-                sub_byte_vec.push(self.byte_vec[j as usize]);
-            }
-            8
-        } else if i % 8 == 0 && size % 8 != 0 {
-            // When i % 8 == 0 && size % 8 == 0
-            // 00000000 11111111 00000000 11111
-            //          ^                  ^
-            //          i=8                i+size = 8+18
-            //          |        |       |  |
-            //             j=1      j=2   j=3
-            //           <-- iterate ----><->
-            //
-            // ; last_byte_len = size % 8
-            for j in (i / 8).. (i + size) / 8 {
-                sub_byte_vec.push(self.byte_vec[j as usize]);
-            }
-            let last_byte = self.byte_vec[((i + size) / 8) as usize];
-            let bits_to_use_from_last_byte = size % 8;
-            let copied_byte = last_byte >> (8 - bits_to_use_from_last_byte) << (8 - bits_to_use_from_last_byte);
-            sub_byte_vec.push(copied_byte);
-            size % 8
-        } else {
-            // When i % 8 != 0 && (i + size) % 8 != 0
-            // 00000000 11111111 00000000 11111
-            //                 ^           ^
-            //                 i=15        i+size = 15+11
-            //                 ||        | |
-            //                j=1   j=2   j=3
-            //                 <- iterate -->
-            //
-            // ; last_byte_len = size % 8
-            for j in (i / 8).. (i + size) / 8 {
-                if (j + 1) * 8 < i + size {
-                    let (byte1, byte2) = (self.byte_vec[j as usize], self.byte_vec[(j + 1) as usize]);
-                    let bits_to_use_from_byte1 = 8 - i % 8;
-                    let copied_byte = (byte1 << (8 - bits_to_use_from_byte1)) | (byte2 >> bits_to_use_from_byte1);
-                    sub_byte_vec.push(copied_byte);
+        //
+        // 00000000 11111111 00000000 11111
+        //        ^                     ^
+        //        i=7                   i+size = 7+19 = 26
+        //      (start)                 (end)
+        //
+        // Copy [start, end).
+        //
+        // Use j for iterator:
+        //   j = start, start+8, ..., start+16 (>= end - 8)
+        let start = i;
+        let end = start + size;
+
+        for j in (start.. end).step_by(8) {
+            if j % 8 == 0 {
+                // Copy 1~8 bits from a single byte in self.byte_vec.
+                let byte = self.byte_vec[j as usize / 8];
+                let right_bits_to_discard = if end - j >= 8 { 0 } else { 8 - (end - j) };
+                let copied_byte = byte >> right_bits_to_discard << right_bits_to_discard;
+                sub_byte_vec.push(copied_byte);
+            } else {
+                // Copy 1~8 bits from 2 byte in self.byte_vec (second byte can be a sentinel).
+                let byte1 = self.byte_vec[j as usize / 8];
+                let byte2 = if (j as usize + 8) / 8 < self.byte_vec.len() {
+                    self.byte_vec[(j as usize + 8) / 8]
                 } else {
-                    let last_byte = self.byte_vec[j as usize];
-                    let bits_to_use_from_last_byte = 8 - i % 8;
-                    let copied_byte = last_byte << (8 - bits_to_use_from_last_byte);
-                    sub_byte_vec.push(copied_byte);
-                }
+                    0u8
+                };
+                let left_bits_to_discard_from_byte1 = j % 8;
+                let right_bits_to_discard_from_byte2 = 8 - j % 8;
+                let copied_byte = (byte1 << left_bits_to_discard_from_byte1) | (byte2 >> right_bits_to_discard_from_byte2);
+                let right_bits_to_discard_from_copied_byte = 
+                    if end - j >= 8 { 0 } else { 8 - (end - j) };
+                let copied_byte = copied_byte >> right_bits_to_discard_from_copied_byte << right_bits_to_discard_from_copied_byte;
+                sub_byte_vec.push(copied_byte);
             }
-            size % 8
-        } as u8;
+        }
 
         RawBitVector {
             byte_vec: sub_byte_vec,
-            last_byte_len,
+            last_byte_len: if size % 8 == 0 { 8 } else { (size % 8) as u8 },
         }
     }
 
     fn validate_index(&self, i: u64) {
         if i >= self.length() { panic!("`i` must be smaller than {} (length of RawBitVector)", self.length()) };
+    }
+}
+
+impl fmt::Display for RawBitVector {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let bits_str = self.byte_vec.iter().enumerate().map(|(i, byte)| {
+            let byte_s = format!("{: >8}", format!("{:b}", byte)).replace(' ', "0");
+            if i < self.byte_vec.len() - 1 {
+                byte_s
+            } else { 
+                byte_s.chars().take(self.last_byte_len as usize).collect::<String>()
+             }
+        }).collect::<Vec<String>>().concat();
+
+        write!(f, "{}", bits_str)
     }
 }
 
@@ -577,6 +573,8 @@ mod copy_sub_success_tests {
         t9_2_2: ("010001010", 7, 2, vec![true, false]),
 
         t9_3_1: ("010001010", 8, 1, vec![false]),
+
+        t13_1_1: ("1011001001010", 9, 4, vec![true, false, true, false]),
     }
 }
 
@@ -617,5 +615,41 @@ mod copy_sub_failure_tests {
 
         t9_3_1: ("010001010", 8, 0),
         t9_3_2: ("010001010", 8, 2),
+    }
+}
+
+#[cfg(test)]
+mod copy_sub_fuzzing_tests {
+    use super::{RawBitVector, BitVectorString};
+
+    #[test]
+    fn test() {
+        let samples = 10000;
+
+        fn sub_str(s: &str, i: u64, size: u64) -> String {
+            let ss: String = s.chars().skip(i as usize).take(size as usize).collect();
+            ss
+        }
+
+        for _ in 0.. samples {
+            let s = &format!("{:b}", rand::random::<u16>());
+            let bvs = BitVectorString::new(s);
+            let rbv = RawBitVector::from_str(&bvs);
+
+            for i in 0.. s.len() {
+                for size in 1.. (s.len() - i) {
+                    let copied_rbv = rbv.copy_sub(i as u64, size as u64);
+
+                    let substr = sub_str(s, i as u64, size as u64);
+                    let substr_bvs = BitVectorString::new(&substr);
+                    let substr_rbv = RawBitVector::from_str(&substr_bvs);
+
+                    assert_eq!(copied_rbv, substr_rbv,
+                        "\nbit vector = {}, RawBitVector::copy_sub(i={}, size={});\nActual:   {}\nExpected: {}",
+                        s, i, size, copied_rbv, substr
+                    );
+                }
+            }
+        }
     }
 }
