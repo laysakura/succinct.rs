@@ -1,7 +1,11 @@
 [package]
-name = "rust-succinct"
+name = "succinct"
 version = "0.1.0"
 authors = ["Sho Nakatani <lay.sakura@gmail.com>"]
+description = "Succinct Data Structures for Rust. Currently, succinct bit vector (succinct indexable dictionaries) is supported."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/laysakura/succinct.rs"
+homepage = "https://github.com/laysakura/succinct.rs"
 edition = "2018"
 
 [dependencies]
