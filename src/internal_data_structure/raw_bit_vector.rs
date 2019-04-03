@@ -14,9 +14,7 @@ impl RawBitVector {
     /// # Panics
     /// When _`length` == 0_.
     pub fn from_length(length: u64) -> RawBitVector {
-        if length == 0 {
-            panic!("length must be > 0.")
-        };
+        assert!(length > 0, "length must be > 0.");
 
         let last_byte_len_or_0 = (length % 8) as u8;
         let last_byte_len = if last_byte_len_or_0 == 0 {
@@ -33,8 +31,8 @@ impl RawBitVector {
 
     /// Makes a bit vector from `BitVectorString` representation.
     pub fn from_str(bit_vector_str: &BitVectorString) -> RawBitVector {
-        let mut rbv = RawBitVector::from_length(bit_vector_str.s.len() as u64);
-        for (i, c) in bit_vector_str.s.chars().enumerate() {
+        let mut rbv = RawBitVector::from_length(bit_vector_str.str().len() as u64);
+        for (i, c) in bit_vector_str.str().chars().enumerate() {
             if c == '1' {
                 rbv.set_bit(i as u64);
             };
@@ -98,21 +96,18 @@ impl RawBitVector {
     ///
     /// # Panics
     /// When:
-    ///
     /// - _`i` + `size` >= `self.length()`_
     /// - _`size` == 0_
     pub fn copy_sub(&self, i: u64, size: u64) -> RawBitVector {
-        if i + size > self.length() {
-            panic!(
-                "i + size must be <= self.length(); i = {}, size = {}, self.length() = {}",
-                i,
-                size,
-                self.length()
-            )
-        };
-        if size == 0 {
-            panic!("length must be > 0")
-        };
+        self.validate_index(i);
+        assert!(
+            i + size <= self.length(),
+            "i + size must be <= self.length(); i = {}, size = {}, self.length() = {}",
+            i,
+            size,
+            self.length()
+        );
+        assert!(size > 0, "length must be > 0");
 
         let mut sub_byte_vec: Vec<u8> = Vec::with_capacity(size as usize / 8 + 1);
 
@@ -131,23 +126,28 @@ impl RawBitVector {
         let start = i;
         let end = start + size;
 
-        for j in (start..end).step_by(8) {
-            if j % 8 == 0 {
+        if start % 8 == 0 {
+            for j in (start..end).step_by(8) {
                 // Copy 1~8 bits from a single byte in self.byte_vec.
                 let byte = self.byte_vec[j as usize / 8];
                 let right_bits_to_discard = if end - j >= 8 { 0 } else { 8 - (end - j) };
                 let copied_byte = (byte >> right_bits_to_discard) << right_bits_to_discard;
                 sub_byte_vec.push(copied_byte);
-            } else {
+            }
+        } else {
+            let left_bits_to_discard_from_byte1 = start % 8;
+            let right_bits_to_discard_from_byte2 = 8 - left_bits_to_discard_from_byte1;
+
+            for j in (start..end).step_by(8) {
                 // Copy 1~8 bits from 2 byte in self.byte_vec (second byte can be a sentinel).
-                let byte1 = self.byte_vec[j as usize / 8];
-                let byte2 = if (j as usize + 8) / 8 < self.byte_vec.len() {
-                    self.byte_vec[(j as usize + 8) / 8]
+                let i_byte1 = j as usize / 8;
+                let byte1 = self.byte_vec[i_byte1];
+                let byte2 = if i_byte1 + 1 < self.byte_vec.len() {
+                    self.byte_vec[i_byte1 + 1]
                 } else {
                     0u8
                 };
-                let left_bits_to_discard_from_byte1 = j % 8;
-                let right_bits_to_discard_from_byte2 = 8 - j % 8;
+
                 let copied_byte = (byte1 << left_bits_to_discard_from_byte1)
                     | (byte2 >> right_bits_to_discard_from_byte2);
                 let right_bits_to_discard_from_copied_byte =
@@ -169,9 +169,11 @@ impl RawBitVector {
     /// # Panics
     /// If _`self.byte_vec.len()` > 4_
     pub fn as_u32(&self) -> u32 {
-        if self.byte_vec.len() > 4 {
-            panic!("self.byte_vec.len() = {} must be <= 4", self.byte_vec.len())
-        };
+        assert!(
+            self.byte_vec.len() <= 4,
+            "self.byte_vec.len() = {} must be <= 4",
+            self.byte_vec.len()
+        );
         let bv = &self.byte_vec;
 
         let byte0 = if bv.len() > 0 { bv[0] as u32 } else { 0u32 };
@@ -182,13 +184,14 @@ impl RawBitVector {
         (byte0 << 24) | (byte1 << 16) | (byte2 << 8) | byte3
     }
 
+    /// # Panics
+    /// When _`i` >= `self.length()`_.
     fn validate_index(&self, i: u64) {
-        if i >= self.length() {
-            panic!(
-                "`i` must be smaller than {} (length of RawBitVector)",
-                self.length()
-            )
-        };
+        assert!(
+            i < self.length(),
+            "`i` must be smaller than {} (length of RawBitVector)",
+            self.length()
+        );
     }
 }
 
@@ -358,7 +361,7 @@ mod from_str_success_tests {
                                 IndexBitPair(7, true),
                            )),
 
-        t9_1: ("000000000", vec!(
+        t9_1: ("00000000_0", vec!(
                                  IndexBitPair(0, false),
                                  IndexBitPair(1, false),
                                  IndexBitPair(2, false),
@@ -369,7 +372,7 @@ mod from_str_success_tests {
                                  IndexBitPair(7, false),
                                  IndexBitPair(8, false),
                             )),
-        t9_2: ("111111111", vec!(
+        t9_2: ("11111111_1", vec!(
                                  IndexBitPair(0, true),
                                  IndexBitPair(1, true),
                                  IndexBitPair(2, true),
@@ -380,7 +383,7 @@ mod from_str_success_tests {
                                  IndexBitPair(7, true),
                                  IndexBitPair(8, true),
                             )),
-        t9_3: ("101010101", vec!(
+        t9_3: ("10101010_1", vec!(
                                  IndexBitPair(0, true),
                                  IndexBitPair(1, false),
                                  IndexBitPair(2, true),
@@ -459,10 +462,10 @@ mod popcount_success_tests {
         t8_3: ("10101010", 4),
         t8_4: ("11111111", 8),
 
-        t9_1: ("000000000", 0),
-        t9_2: ("010101010", 4),
-        t9_3: ("101010101", 5),
-        t9_4: ("111111111", 9),
+        t9_1: ("00000000_0", 0),
+        t9_2: ("01010101_0", 4),
+        t9_3: ("10101010_1", 5),
+        t9_4: ("11111111_1", 9),
     }
 }
 
@@ -537,7 +540,7 @@ mod set_bit_success_tests {
                     IndexBitPair(7, false),
                    )),
 
-        t9_1: ("000000000", vec!(),
+        t9_1: ("00000000_0", vec!(),
                vec!(
                     IndexBitPair(0, false),
                     IndexBitPair(1, false),
@@ -549,7 +552,7 @@ mod set_bit_success_tests {
                     IndexBitPair(7, false),
                     IndexBitPair(8, false),
                    )),
-        t9_2: ("000000000", vec!(0, 2, 4, 6, 8),
+        t9_2: ("00000000_0", vec!(0, 2, 4, 6, 8),
                vec!(
                     IndexBitPair(0, true),
                     IndexBitPair(1, false),
@@ -612,22 +615,22 @@ mod copy_sub_success_tests {
 
         t8_2_1: ("01000101", 7, 1, vec![true]),
 
-        t9_1_1: ("010001010", 0, 1, vec![false]),
-        t9_1_2: ("010001010", 0, 2, vec![false, true]),
-        t9_1_3: ("010001010", 0, 3, vec![false, true, false]),
-        t9_1_4: ("010001010", 0, 4, vec![false, true, false, false]),
-        t9_1_5: ("010001010", 0, 5, vec![false, true, false, false, false]),
-        t9_1_6: ("010001010", 0, 6, vec![false, true, false, false, false, true]),
-        t9_1_7: ("010001010", 0, 7, vec![false, true, false, false, false, true, false]),
-        t9_1_8: ("010001010", 0, 8, vec![false, true, false, false, false, true, false, true]),
-        t9_1_9: ("010001010", 0, 9, vec![false, true, false, false, false, true, false, true, false]),
+        t9_1_1: ("01000101_0", 0, 1, vec![false]),
+        t9_1_2: ("01000101_0", 0, 2, vec![false, true]),
+        t9_1_3: ("01000101_0", 0, 3, vec![false, true, false]),
+        t9_1_4: ("01000101_0", 0, 4, vec![false, true, false, false]),
+        t9_1_5: ("01000101_0", 0, 5, vec![false, true, false, false, false]),
+        t9_1_6: ("01000101_0", 0, 6, vec![false, true, false, false, false, true]),
+        t9_1_7: ("01000101_0", 0, 7, vec![false, true, false, false, false, true, false]),
+        t9_1_8: ("01000101_0", 0, 8, vec![false, true, false, false, false, true, false, true]),
+        t9_1_9: ("01000101_0", 0, 9, vec![false, true, false, false, false, true, false, true, false]),
 
-        t9_2_1: ("010001010", 7, 1, vec![true]),
-        t9_2_2: ("010001010", 7, 2, vec![true, false]),
+        t9_2_1: ("01000101_0", 7, 1, vec![true]),
+        t9_2_2: ("01000101_0", 7, 2, vec![true, false]),
 
-        t9_3_1: ("010001010", 8, 1, vec![false]),
+        t9_3_1: ("01000101_0", 8, 1, vec![false]),
 
-        t13_1_1: ("1011001001010", 9, 4, vec![true, false, true, false]),
+        t13_1_1: ("10110010_01010", 9, 4, vec![true, false, true, false]),
     }
 }
 
@@ -660,14 +663,14 @@ mod copy_sub_failure_tests {
         t8_2_1: ("01000101", 7, 0),
         t8_2_2: ("01000101", 7, 2),
 
-        t9_1_1: ("010001010", 0, 0),
-        t9_1_2: ("010001010", 0, 10),
+        t9_1_1: ("01000101_0", 0, 0),
+        t9_1_2: ("01000101_0", 0, 10),
 
-        t9_2_1: ("010001010", 7, 0),
-        t9_2_2: ("010001010", 7, 3),
+        t9_2_1: ("01000101_0", 7, 0),
+        t9_2_2: ("01000101_0", 7, 3),
 
-        t9_3_1: ("010001010", 8, 0),
-        t9_3_2: ("010001010", 8, 2),
+        t9_3_1: ("01000101_0", 8, 0),
+        t9_3_2: ("01000101_0", 8, 2),
     }
 }
 
@@ -730,9 +733,9 @@ mod as_u32_success_tests {
 
         t8_1: ("10010000", 0b10010000_00000000_00000000_00000000),
 
-        t31_1: ("1001000001000001000010000001101", 0b10010000_01000001_00001000_00011010),
+        t31_1: ("10010000_01000001_00001000_0001101", 0b10010000_01000001_00001000_00011010),
 
-        t32_1: ("10010000010000010000100000011010", 0b10010000_01000001_00001000_00011010),
+        t32_1: ("10010000_01000001_00001000_00011010", 0b10010000_01000001_00001000_00011010),
     }
 }
 
@@ -743,7 +746,7 @@ mod as_u32_failure_tests {
     #[test]
     #[should_panic]
     fn test() {
-        let s = "000000001111111100000000111111110";
+        let s = "00000000_11111111_00000000_11111111_0";
         let rbv = RawBitVector::from_str(&BitVectorString::new(s));
         let _ = rbv.as_u32();
     }

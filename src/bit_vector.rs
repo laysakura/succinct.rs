@@ -1,6 +1,10 @@
 mod bit_vector;
 mod bit_vector_builder;
 mod bit_vector_string;
+mod block;
+mod blocks;
+mod chunk;
+mod chunks;
 
 use super::internal_data_structure::popcount_table::PopcountTable;
 use super::internal_data_structure::raw_bit_vector::RawBitVector;
@@ -35,7 +39,7 @@ use std::collections::HashSet;
 /// // TODO select() example
 ///
 /// // `10010` built by `from_str()`
-/// let bv = BitVectorBuilder::from_str(BitVectorString::new("10010")).build();
+/// let bv = BitVectorBuilder::from_str(BitVectorString::new("1001_0")).build();  // Tips: BitVectorString::new() ignores '_'.
 ///
 /// assert_eq!(bv.access(0), true);   // [1]0010
 /// assert_eq!(bv.access(1), false);  // 1[0]010
@@ -67,33 +71,28 @@ use std::collections::HashSet;
 /// TODO Explain about Chunk, Block, and Table.
 ///
 pub struct BitVector {
-    /// Length.
-    n: u64,
-
     /// Raw data.
     rbv: RawBitVector,
 
     /// Total _popcount_ of _[0, (last bit of the chunk)]_.
     ///
-    /// Each chunk takes _2^64_ at max (when every 64 bit is '1' for BitVector of length of _2^64_).
-    chunks: Vec<u64>,
-
-    /// Total _popcount_ of _[(first bit of the chunk where the block belongs to), (last bit of the chunk where the block belongs to)]_.
-    ///
-    /// Each block takes (log 2^64)^2 = 64^2 = 2^16 at max (when every bit in a chunk is 1 for BitVector of length of 2^64)
-    blocks: Vec<u16>,
+    /// Each chunk takes _2^64_ at max (when every bit is '1' for BitVector of length of _2^64_).
+    /// A `chunk` has `blocks`.
+    chunks: Chunks,
 
     /// Table to calculate inner-block rank() in O(1).
-    popcount_table: PopcountTable,
+    table: PopcountTable,
 }
 
+/// Builder of `succinct::BitVector`.
 pub struct BitVectorBuilder {
     seed: BitVectorSeed,
     bits_set: HashSet<u64>,
 }
 
+/// Provides validated string representation of `succinct::BitVector`.
 pub struct BitVectorString {
-    pub s: String,
+    s: String,
 }
 
 enum BitVectorSeed {
@@ -101,25 +100,33 @@ enum BitVectorSeed {
     Str(BitVectorString),
 }
 
-fn chunk_size(n: u64) -> u16 {
-    let lg2 = log2(n) as u16;
-    let sz = lg2 * lg2;
-    if sz == 0 {
-        1
-    } else {
-        sz
-    }
+/// Collection of `Chunk`.
+struct Chunks {
+    chunks: Vec<Chunk>,
+    chunks_cnt: u64,
 }
 
-fn block_size(n: u64) -> u8 {
-    let sz = log2(n) / 2;
-    if sz == 0 {
-        1
-    } else {
-        sz
-    }
+/// Total _popcount_ of _[0, (last bit of the chunk)]_ of a bit vector.
+///
+/// Each chunk takes _2^64_ at max (when every bit is '1' for BitVector of length of _2^64_).
+struct Chunk {
+    value: u64, // popcount
+    blocks: Blocks,
+
+    #[allow(dead_code)]
+    length: u16,
 }
 
-fn log2(n: u64) -> u8 {
-    (n as f64).log2() as u8
+/// Collection of `Block` in a `Chunk`.
+struct Blocks {
+    blocks: Vec<Block>,
+    blocks_cnt: u16,
+}
+
+/// Total _popcount_ of _[(first bit of the chunk which the block belongs to), (last bit of the block)]_ of a bit vector.
+///
+/// Each block takes (log 2^64)^2 = 64^2 = 2^16 at max (when every bit in a chunk is 1 for BitVector of length of 2^64)
+struct Block {
+    value: u16, // popcount
+    length: u8,
 }
