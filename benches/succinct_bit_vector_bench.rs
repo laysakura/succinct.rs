@@ -9,7 +9,7 @@ const NS: [u64; 5] = [1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20];
 
 fn c() -> Criterion {
     Criterion::default()
-        .sample_size(2)
+        .sample_size(10) // must be >= 10 for Criterion v0.3
         .warm_up_time(Duration::from_secs(1))
 }
 
