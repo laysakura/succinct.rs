@@ -11,6 +11,7 @@ fn c() -> Criterion {
     Criterion::default()
         .sample_size(10) // must be >= 10 for Criterion v0.3
         .warm_up_time(Duration::from_secs(1))
+        .with_plots()
 }
 
 fn builder_from_length_benchmark(_: &mut Criterion) {
