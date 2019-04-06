@@ -6,7 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.0]
+
 ### Added
 - `succinct::BitVector` and its builders: `succinct::BitVectorBuilder` and `succinct::BitVectorString`.
 
-[Unreleased]: https://github.com/laysakura/succinct.rs/compare/3d425b4...HEAD
+[Unreleased]: https://github.com/laysakura/succinct.rs/compare/0.1.0...HEAD
+[0.1.0]: https://github.com/laysakura/succinct.rs/compare/3d425b4...0.1.0
