@@ -7,22 +7,24 @@ rust:
 os:
   - linux
   - osx
-
-cache: cargo
-
-before_script:
-  - rustup component add rustfmt
-
-script:
-  - cargo build --release --verbose --all
-  - cargo test --release --verbose --all
-  - cargo fmt --all -- --check
-  - cargo doc
-  - cargo bench --all && mv target/criterion target/doc/
-
 branches:
   only:
     - master
+cache: cargo
+
+# gnuplot for Criterion HTML Report
+addons:
+  apt:
+    packages:
+      - gnuplot-nox
+  homebrew:
+    packages:
+      - gnuplot
+
+before_script:
+  - ./ci/before_script.sh
+script:
+  - ./ci/script.sh
 
 # GitHub Pages
 deploy:
