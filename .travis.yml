@@ -10,6 +10,7 @@ os:
 branches:
   only:
     - master
+    - /^v[0-9]/  # tag
 cache: cargo
 
 # gnuplot for Criterion HTML Report
