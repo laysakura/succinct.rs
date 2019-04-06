@@ -87,6 +87,37 @@ impl BitVector {
         // 9.
         rank_from_chunk + rank_from_block as u64 + rank_from_table as u64
     }
+
+    /// Returns the minimum position (0-origin) `i` where _`rank(i)` == num_ of `num`-th _1_ if exists. Else returns None.
+    ///
+    /// # Panics
+    /// When _`num` > length of the `BitVector`_.
+    ///
+    /// # Implementation detail
+    /// Binary search using `rank()`.
+    pub fn select(&self, num: u64) -> Option<u64> {
+        let n = self.rbv.length();
+        assert!(num <= n);
+
+        if num == 0 || num == 1 && self.access(0) == true {
+            return Some(0);
+        }
+        if self.rank(n - 1) < num {
+            return None;
+        };
+
+        let mut ng = 0;
+        let mut ok = n - 1;
+        while ok - ng > 1 {
+            let mid = (ok + ng) / 2;
+            if self.rank(mid) >= num {
+                ok = mid;
+            } else {
+                ng = mid;
+            }
+        }
+        Some(ok)
+    }
 }
 
 #[cfg(test)]
@@ -176,5 +207,22 @@ mod rank_failure_tests {
     fn rank_over_upper_bound() {
         let bv = BitVectorBuilder::from_length(2).build();
         let _ = bv.rank(2);
+    }
+}
+
+#[cfg(test)]
+mod select_success_tests {
+    // Tested well in tests/ (integration test)
+}
+
+#[cfg(test)]
+mod select_failure_tests {
+    use super::super::BitVectorBuilder;
+
+    #[test]
+    #[should_panic]
+    fn select_over_max_rank() {
+        let bv = BitVectorBuilder::from_length(2).build();
+        let _ = bv.select(3);
     }
 }
