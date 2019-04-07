@@ -1,20 +1,19 @@
 mod louds;
-mod louds_bit_string;
 mod louds_builder;
 mod louds_index;
 mod louds_node_num;
 
-use crate::bit_vector::BitVectorString;
+use crate::{BitVector, BitVectorBuilder};
 
 /// LOUDS
-pub struct Louds {}
+pub struct Louds {
+    /// LBS (LOUDS Bit String)
+    lbs: BitVector,
+}
 
 /// Builder
-pub struct LoudsBuilder {}
-
-/// LBS
-pub struct LoudsBitString {
-    bvs: BitVectorString,
+pub struct LoudsBuilder {
+    bv_builder: BitVectorBuilder,
 }
 
 #[derive(PartialEq, Eq, Debug)]
