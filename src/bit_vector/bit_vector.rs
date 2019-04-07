@@ -138,7 +138,7 @@ impl BitVector {
         if num == 0 || num == 1 && self.access(0) == false {
             return Some(0);
         }
-        if self.rank(n - 1) < num {
+        if self.rank0(n - 1) < num {
             return None;
         };
 
