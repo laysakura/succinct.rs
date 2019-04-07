@@ -67,8 +67,8 @@ assert_eq!(bv.select(3), None);    // There is no i where range [0, i] has 3 '1'
 
 // -----------------------------------------------
 
-// `10010` built by `from_bit_string()`
-let bv = BitVectorBuilder::from_bit_string(BitString::new("1001_0")).build();  // Tips: BitString::new() ignores '_'.
+// `01001` built by `from_bit_string()`
+let bv = BitVectorBuilder::from_bit_string(BitString::new("0100_1")).build();  // Tips: BitString::new() ignores '_'.
 
 // `rank0()` and `select0()` are also supported
 assert_eq!(bv.rank0(0), 1);  // [0]1001; Range [0, 0] has no '0'

@@ -88,6 +88,14 @@ impl BitVector {
         rank_from_chunk + rank_from_block as u64 + rank_from_table as u64
     }
 
+    /// Returns the number of _0_ in _[0, `i`]_ elements of the `BitVector`.
+    ///
+    /// # Panics
+    /// When _`i` >= length of the `BitVector`_.
+    pub fn rank0(&self, i: u64) -> u64 {
+        (i + 1) - self.rank(i)
+    }
+
     /// Returns the minimum position (0-origin) `i` where _`rank(i)` == num_ of `num`-th _1_ if exists. Else returns None.
     ///
     /// # Panics
@@ -111,6 +119,34 @@ impl BitVector {
         while ok - ng > 1 {
             let mid = (ok + ng) / 2;
             if self.rank(mid) >= num {
+                ok = mid;
+            } else {
+                ng = mid;
+            }
+        }
+        Some(ok)
+    }
+
+    /// Returns the minimum position (0-origin) `i` where _`rank(i)` == num_ of `num`-th _0_ if exists. Else returns None.
+    ///
+    /// # Panics
+    /// When _`num` > length of the `BitVector`_.
+    pub fn select0(&self, num: u64) -> Option<u64> {
+        let n = self.rbv.length();
+        assert!(num <= n);
+
+        if num == 0 || num == 1 && self.access(0) == false {
+            return Some(0);
+        }
+        if self.rank(n - 1) < num {
+            return None;
+        };
+
+        let mut ng = 0;
+        let mut ok = n - 1;
+        while ok - ng > 1 {
+            let mid = (ok + ng) / 2;
+            if self.rank0(mid) >= num {
                 ok = mid;
             } else {
                 ng = mid;
@@ -211,6 +247,62 @@ mod rank_failure_tests {
 }
 
 #[cfg(test)]
+#[allow(non_snake_case)]
+mod rank0_success_tests {
+    use super::super::{BitString, BitVectorBuilder};
+
+    macro_rules! parameterized_tests {
+        ($($name:ident: $value:expr,)*) => {
+        $(
+            #[test]
+            fn $name() {
+                let (in_bv_str, in_i, expected_rank0) = $value;
+                assert_eq!(
+                    BitVectorBuilder::from_bit_string(BitString::new(in_bv_str))
+                        .build().rank0(in_i),
+                    expected_rank0);
+            }
+        )*
+        }
+    }
+
+    parameterized_tests! {
+        rank0_1_1: ("0", 0, 1),
+
+        rank0_2_1: ("00", 0, 1),
+        rank0_2_2: ("00", 1, 2),
+
+        rank0_3_1: ("01", 0, 1),
+        rank0_3_2: ("01", 1, 1),
+
+        rank0_4_1: ("10", 0, 0),
+        rank0_4_2: ("10", 1, 1),
+
+        rank0_5_1: ("11", 0, 0),
+        rank0_5_2: ("11", 1, 0),
+
+        rank0_6_1: ("10010", 0, 0),
+        rank0_6_2: ("10010", 1, 1),
+        rank0_6_3: ("10010", 2, 2),
+        rank0_6_4: ("10010", 3, 2),
+        rank0_6_5: ("10010", 4, 3),
+    }
+    // Tested more in tests/ (integration test)
+}
+
+#[cfg(test)]
+mod rank0_0_failure_tests {
+    use super::super::BitVectorBuilder;
+
+    #[test]
+    #[should_panic]
+    fn rank0_over_upper_bound() {
+        let bv = BitVectorBuilder::from_length(2).build();
+        let _ = bv.rank0(2);
+    }
+}
+
+#[cfg(test)]
 mod select_success_tests {
     // Tested well in tests/ (integration test)
 }
@@ -224,5 +316,22 @@ mod select_failure_tests {
     fn select_over_max_rank() {
         let bv = BitVectorBuilder::from_length(2).build();
         let _ = bv.select(3);
+    }
+}
+
+#[cfg(test)]
+mod select0_success_tests {
+    // Tested well in tests/ (integration test)
+}
+
+#[cfg(test)]
+mod select0_failure_tests {
+    use super::super::BitVectorBuilder;
+
+    #[test]
+    #[should_panic]
+    fn select_over_max_rank() {
+        let bv = BitVectorBuilder::from_length(2).build();
+        let _ = bv.select0(3);
     }
 }
