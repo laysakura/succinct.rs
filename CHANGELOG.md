@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [v0.3.0]
 
 ### Added
-- `succinct_rs::BitVector::{rank1(), rank0()}`
-- `succinct_rs::BitVector::{select1(), select0()}`
+- `succinct_rs::BitVector::rank0()`
+- `succinct_rs::BitVector::select0()`
 
 ## [v0.2.0]
 
