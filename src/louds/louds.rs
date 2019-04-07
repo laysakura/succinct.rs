@@ -33,8 +33,26 @@ impl Louds {
         LoudsNodeNum::new(parent_node_num)
     }
 
+    /// # Panics
+    /// `node_num` does not exist in this LOUDS.
     pub fn parent_to_children(&self, node_num: LoudsNodeNum) -> Vec<LoudsIndex> {
-        vec![]
+        assert!(node_num.value() > 0);
+
+        let parent_start_index = self.lbs.select0(node_num.value())
+        .expect(&format!(
+            "NodeNum({}) does not exist in this LOUDS",
+            node_num.value(),
+        )) + 1;
+
+        let mut children_index: Vec<u64> = vec![];
+        let mut i = parent_start_index;
+        loop {
+            if self.lbs.access(i) == false { break; }
+            else { children_index.push(i); }
+            i += 1;
+        }
+
+        children_index.iter().map(|i| LoudsIndex::new(*i)).collect()
     }
 
     /// # Panics
@@ -303,5 +321,76 @@ mod child_to_parent_failure_tests {
         t1: "10_0",
         t2: "10_10_0",
         t3: "10_1110_10_0_1110_0_0_10_110_0_0_0",
+    }
+}
+
+#[cfg(test)]
+mod parent_to_children_success_tests {
+    use crate::{BitString, LoudsBuilder, LoudsIndex, LoudsNodeNum};
+
+    macro_rules! parameterized_tests {
+        ($($name:ident: $value:expr,)*) => {
+        $(
+            #[test]
+            fn $name() {
+                let (in_s, node_num, expected_children) = $value;
+                let bs = BitString::new(in_s);
+                let louds = LoudsBuilder::from_bit_string(bs).build();
+                let children = louds.parent_to_children(LoudsNodeNum::new(node_num));
+                assert_eq!(children, expected_children.iter().map(|c| LoudsIndex::new(*c)).collect::<Vec<LoudsIndex>>());
+            }
+        )*
+        }
+    }
+
+    parameterized_tests! {
+        t1_1: ("10_0", 1, vec!()),
+
+        t2_1: ("10_10_0", 1, vec!(2)),
+        t2_2: ("10_10_0", 2, vec!()),
+
+        t3_1: ("10_1110_10_0_1110_0_0_10_110_0_0_0", 1, vec!(2, 3, 4)),
+        t3_2: ("10_1110_10_0_1110_0_0_10_110_0_0_0", 2, vec!(6)),
+        t3_3: ("10_1110_10_0_1110_0_0_10_110_0_0_0", 3, vec!()),
+        t3_4: ("10_1110_10_0_1110_0_0_10_110_0_0_0", 4, vec!(9, 10, 11)),
+        t3_5: ("10_1110_10_0_1110_0_0_10_110_0_0_0", 5, vec!()),
+        t3_6: ("10_1110_10_0_1110_0_0_10_110_0_0_0", 6, vec!()),
+        t3_7: ("10_1110_10_0_1110_0_0_10_110_0_0_0", 7, vec!(15)),
+        t3_8: ("10_1110_10_0_1110_0_0_10_110_0_0_0", 8, vec!(17, 18)),
+        t3_9: ("10_1110_10_0_1110_0_0_10_110_0_0_0", 9, vec!()),
+        t3_10: ("10_1110_10_0_1110_0_0_10_110_0_0_0", 10, vec!()),
+        t3_11: ("10_1110_10_0_1110_0_0_10_110_0_0_0", 11, vec!()),
+    }
+
+}
+
+#[cfg(test)]
+mod parent_to_children_failure_tests {
+    use crate::{BitString, LoudsBuilder, LoudsNodeNum};
+
+    macro_rules! parameterized_node_not_found_tests {
+        ($($name:ident: $value:expr,)*) => {
+        $(
+            #[test]
+            #[should_panic]
+            fn $name() {
+                let (in_s, node_num) = $value;
+                let bs = BitString::new(in_s);
+                let louds = LoudsBuilder::from_bit_string(bs).build();
+                let _ = louds.parent_to_children(LoudsNodeNum::new(node_num));
+            }
+        )*
+        }
+    }
+
+    parameterized_node_not_found_tests! {
+        t1_1: ("10_0", 0),
+        t1_2: ("10_0", 2),
+
+        t2_1: ("10_10_0", 0),
+        t2_2: ("10_10_0", 3),
+
+        t3_1: ("10_1110_10_0_1110_0_0_10_110_0_0_0", 0),
+        t3_2: ("10_1110_10_0_1110_0_0_10_110_0_0_0", 12),
     }
 }
