@@ -38,8 +38,7 @@ impl Louds {
     pub fn parent_to_children(&self, node_num: LoudsNodeNum) -> Vec<LoudsIndex> {
         assert!(node_num.value() > 0);
 
-        let parent_start_index = self.lbs.select0(node_num.value())
-        .expect(&format!(
+        let parent_start_index = self.lbs.select0(node_num.value()).expect(&format!(
             "NodeNum({}) does not exist in this LOUDS",
             node_num.value(),
         )) + 1;
@@ -47,8 +46,11 @@ impl Louds {
         let mut children_index: Vec<u64> = vec![];
         let mut i = parent_start_index;
         loop {
-            if self.lbs.access(i) == false { break; }
-            else { children_index.push(i); }
+            if self.lbs.access(i) == false {
+                break;
+            } else {
+                children_index.push(i);
+            }
             i += 1;
         }
 
