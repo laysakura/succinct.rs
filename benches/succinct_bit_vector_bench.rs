@@ -127,7 +127,7 @@ fn select0_benchmark(_: &mut Criterion) {
     let times = 1_000;
 
     c().bench_function_over_inputs(
-        &format!("[{}] BitVector::select(N) {} times", git_hash(), times),
+        &format!("[{}] BitVector::select0(N) {} times", git_hash(), times),
         move |b, &&n| {
             b.iter_batched(
                 || BitVectorBuilder::from_length(n).build(),
