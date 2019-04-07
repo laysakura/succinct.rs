@@ -1,4 +1,5 @@
-use succinct_rs::{LoudsBuilder, LoudsBitString, LoudsNodeNum, LoudsIndex};
+mod louds_feature_test {
+    use succinct_rs::{LoudsBuilder, LoudsBitString, LoudsNodeNum, LoudsIndex};
 
 #[test]
 fn node_num_to_index() {
@@ -61,4 +62,5 @@ fn parent_to_children() {
     assert_eq!(louds.parent_to_children(LoudsNodeNum::new(9)), vec!());
     assert_eq!(louds.parent_to_children(LoudsNodeNum::new(10)), vec!());
     assert_eq!(louds.parent_to_children(LoudsNodeNum::new(11)), vec!());
+}
 }
