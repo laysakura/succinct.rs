@@ -4,7 +4,7 @@ use crate::BitString;
 
 impl super::LoudsBuilder {
     pub fn from_bit_string(bs: BitString) -> LoudsBuilder {
-        let bv_builder = BitVectorBuilder::from_str(bs);
+        let bv_builder = BitVectorBuilder::from_bit_string(bs);
         LoudsBuilder { bv_builder }
     }
 
