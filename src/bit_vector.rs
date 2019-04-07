@@ -1,11 +1,11 @@
 mod bit_vector;
 mod bit_vector_builder;
-mod bit_vector_string;
 mod block;
 mod blocks;
 mod chunk;
 mod chunks;
 
+use super::bit_string::BitString;
 use super::internal_data_structure::popcount_table::PopcountTable;
 use super::internal_data_structure::raw_bit_vector::RawBitVector;
 use std::collections::HashSet;
@@ -21,7 +21,7 @@ use std::collections::HashSet;
 /// ```
 /// extern crate succinct_rs;
 ///
-/// use succinct_rs::bit_vector::{BitVectorBuilder, BitVectorString};
+/// use succinct_rs::{BitVectorBuilder, BitString};
 ///
 /// // `01001` built by `from_length()` and `set_bit()`
 /// let bv = BitVectorBuilder::from_length(5)
@@ -42,8 +42,8 @@ use std::collections::HashSet;
 /// assert_eq!(bv.select(2), Some(4)); // 0100[1]; Minimum i where range [0, i] has 2 '1's is i=4
 /// assert_eq!(bv.select(3), None);    // There is no i where range [0, i] has 3 '1's
 ///
-/// // `10010` built by `from_str()`
-/// let bv = BitVectorBuilder::from_str(BitVectorString::new("1001_0")).build();  // Tips: BitVectorString::new() ignores '_'.
+/// // `10010` built by `from_bit_string()`
+/// let bv = BitVectorBuilder::from_bit_string(BitString::new("1001_0")).build();  // Tips: BitString::new() ignores '_'.
 /// ```
 ///
 /// # Complexity
@@ -149,14 +149,9 @@ pub struct BitVectorBuilder {
     bits_set: HashSet<u64>,
 }
 
-/// Provides validated string representation of [BitVector](struct.BitVector.html).
-pub struct BitVectorString {
-    s: String,
-}
-
 enum BitVectorSeed {
     Length(u64),
-    Str(BitVectorString),
+    BitStr(BitString),
 }
 
 /// Collection of Chunk.

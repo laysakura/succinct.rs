@@ -3,7 +3,7 @@ extern crate criterion;
 
 use criterion::{BatchSize, Criterion};
 use std::time::Duration;
-use succinct_rs::{BitVectorBuilder, BitVectorString};
+use succinct_rs::{BitString, BitVectorBuilder};
 
 const NS: [u64; 5] = [1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20];
 
@@ -31,19 +31,19 @@ fn builder_from_length_benchmark(_: &mut Criterion) {
     );
 }
 
-fn builder_from_str_benchmark(_: &mut Criterion) {
+fn builder_from_bit_string_benchmark(_: &mut Criterion) {
     c().bench_function_over_inputs(
         &format!(
-            "[{}] BitVectorBuilder::from_str(\"00...(repeated N-times)\").build()",
+            "[{}] BitVectorBuilder::from_bit_string(\"00...(repeated N-times)\").build()",
             git_hash()
         ),
         |b, &&n| {
             b.iter_batched(
                 || {
                     let s = String::from_utf8(vec!['0' as u8; n as usize]).unwrap();
-                    BitVectorString::new(&s)
+                    BitString::new(&s)
                 },
-                |bvs| BitVectorBuilder::from_str(bvs).build(),
+                |bs| BitVectorBuilder::from_bit_string(bs).build(),
                 BatchSize::SmallInput,
             )
         },
@@ -104,7 +104,7 @@ fn select_benchmark(_: &mut Criterion) {
 criterion_group!(
     benches,
     builder_from_length_benchmark,
-    builder_from_str_benchmark,
+    builder_from_bit_string_benchmark,
     rank_benchmark,
     select_benchmark,
 );
