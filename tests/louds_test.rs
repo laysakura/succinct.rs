@@ -3,62 +3,62 @@ use succinct_rs::{LoudsBuilder, LoudsBitString, LoudsNodeNum, LoudsIndex};
 #[test]
 fn node_num_to_index() {
     let louds = LoudsBuilder::from_lbs(LoudsBitString::new("10_1110_10_0_1110_0_0_10_110_0_0_0")).build();
-    assert_eq!(louds.node_num_to_index(LoudsNodeNum(1)), LoudsIndex(0));
-    assert_eq!(louds.node_num_to_index(LoudsNodeNum(2)), LoudsIndex(2));
-    assert_eq!(louds.node_num_to_index(LoudsNodeNum(3)), LoudsIndex(3));
-    assert_eq!(louds.node_num_to_index(LoudsNodeNum(4)), LoudsIndex(4));
-    assert_eq!(louds.node_num_to_index(LoudsNodeNum(5)), LoudsIndex(6));
-    assert_eq!(louds.node_num_to_index(LoudsNodeNum(6)), LoudsIndex(9));
-    assert_eq!(louds.node_num_to_index(LoudsNodeNum(7)), LoudsIndex(10));
-    assert_eq!(louds.node_num_to_index(LoudsNodeNum(8)), LoudsIndex(11));
-    assert_eq!(louds.node_num_to_index(LoudsNodeNum(9)), LoudsIndex(15));
-    assert_eq!(louds.node_num_to_index(LoudsNodeNum(10)), LoudsIndex(17));
-    assert_eq!(louds.node_num_to_index(LoudsNodeNum(11)), LoudsIndex(18));
+    assert_eq!(louds.node_num_to_index(LoudsNodeNum::new(1)), LoudsIndex::new(0));
+    assert_eq!(louds.node_num_to_index(LoudsNodeNum::new(2)), LoudsIndex::new(2));
+    assert_eq!(louds.node_num_to_index(LoudsNodeNum::new(3)), LoudsIndex::new(3));
+    assert_eq!(louds.node_num_to_index(LoudsNodeNum::new(4)), LoudsIndex::new(4));
+    assert_eq!(louds.node_num_to_index(LoudsNodeNum::new(5)), LoudsIndex::new(6));
+    assert_eq!(louds.node_num_to_index(LoudsNodeNum::new(6)), LoudsIndex::new(9));
+    assert_eq!(louds.node_num_to_index(LoudsNodeNum::new(7)), LoudsIndex::new(10));
+    assert_eq!(louds.node_num_to_index(LoudsNodeNum::new(8)), LoudsIndex::new(11));
+    assert_eq!(louds.node_num_to_index(LoudsNodeNum::new(9)), LoudsIndex::new(15));
+    assert_eq!(louds.node_num_to_index(LoudsNodeNum::new(10)), LoudsIndex::new(17));
+    assert_eq!(louds.node_num_to_index(LoudsNodeNum::new(11)), LoudsIndex::new(18));
 }
 
 #[test]
 fn index_to_node_num() {
     let louds = LoudsBuilder::from_lbs(LoudsBitString::new("10_1110_10_0_1110_0_0_10_110_0_0_0")).build();
-    assert_eq!(LoudsIndex(0), louds.node_num_to_index(LoudsNodeNum(1)));
-    assert_eq!(LoudsIndex(2), louds.node_num_to_index(LoudsNodeNum(2)));
-    assert_eq!(LoudsIndex(3), louds.node_num_to_index(LoudsNodeNum(3)));
-    assert_eq!(LoudsIndex(4), louds.node_num_to_index(LoudsNodeNum(4)));
-    assert_eq!(LoudsIndex(6), louds.node_num_to_index(LoudsNodeNum(5)));
-    assert_eq!(LoudsIndex(9), louds.node_num_to_index(LoudsNodeNum(6)));
-    assert_eq!(LoudsIndex(10), louds.node_num_to_index(LoudsNodeNum(7)));
-    assert_eq!(LoudsIndex(11), louds.node_num_to_index(LoudsNodeNum(8)));
-    assert_eq!(LoudsIndex(15), louds.node_num_to_index(LoudsNodeNum(9)));
-    assert_eq!(LoudsIndex(17), louds.node_num_to_index(LoudsNodeNum(10)));
-    assert_eq!(LoudsIndex(18), louds.node_num_to_index(LoudsNodeNum(11)));
+    assert_eq!(LoudsIndex::new(0), louds.node_num_to_index(LoudsNodeNum::new(1)));
+    assert_eq!(LoudsIndex::new(2), louds.node_num_to_index(LoudsNodeNum::new(2)));
+    assert_eq!(LoudsIndex::new(3), louds.node_num_to_index(LoudsNodeNum::new(3)));
+    assert_eq!(LoudsIndex::new(4), louds.node_num_to_index(LoudsNodeNum::new(4)));
+    assert_eq!(LoudsIndex::new(6), louds.node_num_to_index(LoudsNodeNum::new(5)));
+    assert_eq!(LoudsIndex::new(9), louds.node_num_to_index(LoudsNodeNum::new(6)));
+    assert_eq!(LoudsIndex::new(10), louds.node_num_to_index(LoudsNodeNum::new(7)));
+    assert_eq!(LoudsIndex::new(11), louds.node_num_to_index(LoudsNodeNum::new(8)));
+    assert_eq!(LoudsIndex::new(15), louds.node_num_to_index(LoudsNodeNum::new(9)));
+    assert_eq!(LoudsIndex::new(17), louds.node_num_to_index(LoudsNodeNum::new(10)));
+    assert_eq!(LoudsIndex::new(18), louds.node_num_to_index(LoudsNodeNum::new(11)));
 }
 
 #[test]
 fn child_to_parent() {
     let louds = LoudsBuilder::from_lbs(LoudsBitString::new("10_1110_10_0_1110_0_0_10_110_0_0_0")).build();
-    assert_eq(louds.child_to_parent(LoudsIndex(2)), LoudsNodeNum(1));
-    assert_eq(louds.child_to_parent(LoudsIndex(3)), LoudsNodeNum(1));
-    assert_eq(louds.child_to_parent(LoudsIndex(4)), LoudsNodeNum(1));
-    assert_eq(louds.child_to_parent(LoudsIndex(6)), LoudsNodeNum(2));
-    assert_eq(louds.child_to_parent(LoudsIndex(9)), LoudsNodeNum(4));
-    assert_eq(louds.child_to_parent(LoudsIndex(10)), LoudsNodeNum(4));
-    assert_eq(louds.child_to_parent(LoudsIndex(11)), LoudsNodeNum(4));
-    assert_eq(louds.child_to_parent(LoudsIndex(15)), LoudsNodeNum(7));
-    assert_eq(louds.child_to_parent(LoudsIndex(17)), LoudsNodeNum(8));
-    assert_eq(louds.child_to_parent(LoudsIndex(18)), LoudsNodeNum(8));
+    assert_eq!(louds.child_to_parent(LoudsIndex::new(2)), LoudsNodeNum::new(1));
+    assert_eq!(louds.child_to_parent(LoudsIndex::new(3)), LoudsNodeNum::new(1));
+    assert_eq!(louds.child_to_parent(LoudsIndex::new(4)), LoudsNodeNum::new(1));
+    assert_eq!(louds.child_to_parent(LoudsIndex::new(6)), LoudsNodeNum::new(2));
+    assert_eq!(louds.child_to_parent(LoudsIndex::new(9)), LoudsNodeNum::new(4));
+    assert_eq!(louds.child_to_parent(LoudsIndex::new(10)), LoudsNodeNum::new(4));
+    assert_eq!(louds.child_to_parent(LoudsIndex::new(11)), LoudsNodeNum::new(4));
+    assert_eq!(louds.child_to_parent(LoudsIndex::new(15)), LoudsNodeNum::new(7));
+    assert_eq!(louds.child_to_parent(LoudsIndex::new(17)), LoudsNodeNum::new(8));
+    assert_eq!(louds.child_to_parent(LoudsIndex::new(18)), LoudsNodeNum::new(8));
 }
 
 #[test]
 fn parent_to_children() {
     let louds = LoudsBuilder::from_lbs(LoudsBitString::new("10_1110_10_0_1110_0_0_10_110_0_0_0")).build();
-    assert_eq(louds.parent_to_children(LoudsNodeNum(1), vec!(LoudsIndex(2), LoudsIndex(3), LoudsIndex(4));
-    assert_eq(louds.parent_to_children(LoudsNodeNum(2), vec!(LoudsIndex(6));
-    assert_eq(louds.parent_to_children(LoudsNodeNum(3), vec!();
-    assert_eq(louds.parent_to_children(LoudsNodeNum(4), vec!(LoudsIndex(9), LoudsIndex(10), LoudsIndex(11));
-    assert_eq(louds.parent_to_children(LoudsNodeNum(5), vec!();
-    assert_eq(louds.parent_to_children(LoudsNodeNum(6), vec!();
-    assert_eq(louds.parent_to_children(LoudsNodeNum(7), vec!(LoudsIndex(15));
-    assert_eq(louds.parent_to_children(LoudsNodeNum(8), vec!(LoudsIndex(17), LoudsIndex(18));
-    assert_eq(louds.parent_to_children(LoudsNodeNum(9), vec!();
-    assert_eq(louds.parent_to_children(LoudsNodeNum(10), vec!();
-    assert_eq(louds.parent_to_children(LoudsNodeNum(11), vec!();
+    assert_eq!(louds.parent_to_children(LoudsNodeNum::new(1)), vec!(LoudsIndex::new(2), LoudsIndex::new(3), LoudsIndex::new(4)));
+    assert_eq!(louds.parent_to_children(LoudsNodeNum::new(2)), vec!(LoudsIndex::new(6)));
+    assert_eq!(louds.parent_to_children(LoudsNodeNum::new(3)), vec!());
+    assert_eq!(louds.parent_to_children(LoudsNodeNum::new(4)), vec!(LoudsIndex::new(9), LoudsIndex::new(10), LoudsIndex::new(11)));
+    assert_eq!(louds.parent_to_children(LoudsNodeNum::new(5)), vec!());
+    assert_eq!(louds.parent_to_children(LoudsNodeNum::new(6)), vec!());
+    assert_eq!(louds.parent_to_children(LoudsNodeNum::new(7)), vec!(LoudsIndex::new(15)));
+    assert_eq!(louds.parent_to_children(LoudsNodeNum::new(8)), vec!(LoudsIndex::new(17), LoudsIndex::new(18)));
+    assert_eq!(louds.parent_to_children(LoudsNodeNum::new(9)), vec!());
+    assert_eq!(louds.parent_to_children(LoudsNodeNum::new(10)), vec!());
+    assert_eq!(louds.parent_to_children(LoudsNodeNum::new(11)), vec!());
 }
