@@ -67,7 +67,7 @@ mod bit_vector {
                     || BitVectorBuilder::from_length(n).build(),
                     |bv| {
                         // iter_batched() does not properly time `routine` time when `setup` time is far longer than `routine` time.
-                        // rank() takes too short compared to build(). So loop many times.
+                        // Tested function takes too short compared to build(). So loop many times.
                         for _ in 0..times {
                             assert_eq!(bv.rank(n - 1), 0);
                         }
@@ -99,7 +99,7 @@ mod bit_vector {
                     },
                     |bv| {
                         // iter_batched() does not properly time `routine` time when `setup` time is far longer than `routine` time.
-                        // rank() takes too short compared to build(). So loop many times.
+                        // Tested function takes too short compared to build(). So loop many times.
                         for _ in 0..times {
                             assert_eq!(bv.select(n - 1), Some(n - 2));
                         }
@@ -125,7 +125,7 @@ mod bit_vector {
                     || BitVectorBuilder::from_length(n).build(),
                     |bv| {
                         // iter_batched() does not properly time `routine` time when `setup` time is far longer than `routine` time.
-                        // rank() takes too short compared to build(). So loop many times.
+                        // Tested function takes too short compared to build(). So loop many times.
                         for _ in 0..times {
                             assert_eq!(bv.rank0(n - 1), n);
                         }
@@ -151,9 +151,66 @@ mod bit_vector {
                     || BitVectorBuilder::from_length(n).build(),
                     |bv| {
                         // iter_batched() does not properly time `routine` time when `setup` time is far longer than `routine` time.
-                        // rank() takes too short compared to build(). So loop many times.
+                        // Tested function takes too short compared to build(). So loop many times.
                         for _ in 0..times {
                             assert_eq!(bv.select0(n - 1), Some(n - 2));
+                        }
+                    },
+                    BatchSize::SmallInput,
+                )
+            },
+            &NS,
+        );
+    }
+}
+
+mod louds {
+    use criterion::{BatchSize, Criterion};
+    use succinct_rs::{BitString, LoudsBuilder, LoudsIndex, LoudsNodeNum};
+
+    const NS: [u64; 5] = [1 << 11, 1 << 12, 1 << 13, 1 << 14, 1 << 15];
+
+    fn generate_binary_tree_lbs(n_nodes: u64) -> BitString {
+        assert!(
+            NS.iter().any(|n| n - 1 == n_nodes),
+            "Only 2^m - 1 nodes (complete binary tree) is supported"
+        );
+
+        let mut s = String::from("10");
+
+        // Nodes
+        for _ in 1..=(n_nodes / 2) {
+            s = format!("{}{}", s, "110");
+        }
+
+        // Leaves
+        for _ in (n_nodes / 2 + 1)..=(n_nodes) {
+            s = format!("{}{}", s, "0");
+        }
+
+        BitString::new(&s)
+    }
+
+    pub fn node_num_to_index_benchmark(_: &mut Criterion) {
+        let times = 10_000;
+
+        super::c().bench_function_over_inputs(
+            &format!(
+                "[{}] Louds(N)::node_num_to_index() {} times",
+                super::git_hash(),
+                times,
+            ),
+            move |b, &&n| {
+                b.iter_batched(
+                    || {
+                        let bs = generate_binary_tree_lbs(n - 1);
+                        LoudsBuilder::from_bit_string(bs).build()
+                    },
+                    |louds| {
+                        // iter_batched() does not properly time `routine` time when `setup` time is far longer than `routine` time.
+                        // Tested function takes too short compared to build(). So loop many times.
+                        for _ in 0..times {
+                            let _ = louds.node_num_to_index(&LoudsNodeNum::new(n - 1));
                         }
                     },
                     BatchSize::SmallInput,
@@ -172,5 +229,6 @@ criterion_group!(
     bit_vector::select_benchmark,
     bit_vector::rank0_benchmark,
     bit_vector::select0_benchmark,
+    louds::node_num_to_index_benchmark,
 );
 criterion_main!(benches);
