@@ -248,6 +248,64 @@ mod louds {
             &NS,
         );
     }
+
+    pub fn parent_to_children_benchmark(_: &mut Criterion) {
+        let times = 10_000;
+
+        super::c().bench_function_over_inputs(
+            &format!(
+                "[{}] Louds(N)::parent_to_children() {} times",
+                super::git_hash(),
+                times,
+            ),
+            move |b, &&n| {
+                b.iter_batched(
+                    || {
+                        let bs = generate_binary_tree_lbs(n - 1);
+                        LoudsBuilder::from_bit_string(bs).build()
+                    },
+                    |louds| {
+                        // iter_batched() does not properly time `routine` time when `setup` time is far longer than `routine` time.
+                        // Tested function takes too short compared to build(). So loop many times.
+                        for _ in 0..times {
+                            let _ = louds.parent_to_children(&LoudsNodeNum::new(n - 1));
+                        }
+                    },
+                    BatchSize::SmallInput,
+                )
+            },
+            &NS,
+        );
+    }
+
+    pub fn child_to_parent_benchmark(_: &mut Criterion) {
+        let times = 10_000;
+
+        super::c().bench_function_over_inputs(
+            &format!(
+                "[{}] Louds(N)::child_to_parent() {} times",
+                super::git_hash(),
+                times,
+            ),
+            move |b, &&n| {
+                b.iter_batched(
+                    || {
+                        let bs = generate_binary_tree_lbs(n - 1);
+                        LoudsBuilder::from_bit_string(bs).build()
+                    },
+                    |louds| {
+                        // iter_batched() does not properly time `routine` time when `setup` time is far longer than `routine` time.
+                        // Tested function takes too short compared to build(). So loop many times.
+                        for _ in 0..times {
+                            let _ = louds.child_to_parent(&LoudsIndex::new(n / 2 + 1));
+                        }
+                    },
+                    BatchSize::SmallInput,
+                )
+            },
+            &NS,
+        );
+    }
 }
 
 criterion_group!(
@@ -260,5 +318,7 @@ criterion_group!(
     bit_vector::select0_benchmark,
     louds::node_num_to_index_benchmark,
     louds::index_to_node_num_benchmark,
+    louds::parent_to_children_benchmark,
+    louds::child_to_parent_benchmark,
 );
 criterion_main!(benches);
