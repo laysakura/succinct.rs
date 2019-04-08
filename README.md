@@ -18,7 +18,7 @@ Succinct Data Structures library for Rust.
 
 Succinct.rs is a library to provide succinct data structures with _simple API_ and _high performance_.
 
-Currently, **[Succinct Bit Vector](https://laysakura.github.io/succinct.rs/succinct_rs/bit_vector/struct.BitVector.html)** is supported.
+Currently, **[Succinct Bit Vector](https://laysakura.github.io/succinct.rs/succinct_rs/bit_vector/struct.BitVector.html)** and **[LOUDS (Level-Order Unary Degree Sequence)](https://laysakura.github.io/succinct.rs/succinct_rs/louds/struct.Louds.html)** are supported.
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -35,7 +35,7 @@ To use with Succinct.rs, add the following to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-succinct_rs = "0.3"
+succinct_rs = "0.4"
 ```
 
 ### [Succinct Bit Vector](https://laysakura.github.io/succinct.rs/succinct_rs/bit_vector/struct.BitVector.html) Usage
@@ -81,15 +81,38 @@ assert_eq!(bv.select0(2), Some(2)); // 01[0]01; Minimum i where range [0, i] has
 assert_eq!(bv.select0(4), None);    // There is no i where range [0, i] has 4 '0's
 ```
 
+### [LOUDS](https://laysakura.github.io/succinct.rs/succinct_rs/bit_vector/struct.Louds.html) Usage
+
+```rust
+extern crate succinct_rs;
+
+use succinct_rs::{BitString, LoudsBuilder, LoudsIndex, LoudsNodeNum};
+
+// Construct from LBS.
+let bs = BitString::new("10_1110_10_0_1110_0_0_10_110_0_0_0");
+let louds = LoudsBuilder::from_bit_string(bs).build();
+
+// LoudsNodeNum <-> LoudsIndex
+let node8 = LoudsNodeNum::new(8);
+let index11 = louds.node_num_to_index(&node8);
+assert_eq!(louds.index_to_node_num(&index11), node8);
+
+// Search for children.
+assert_eq!(louds.parent_to_children(&node8), vec!(LoudsIndex::new(17), LoudsIndex::new(18)));
+
+// Search for parent.
+assert_eq!(louds.child_to_parent(&index11), LoudsNodeNum::new(4));
+```
+
 ## Features
 
-- **Arbitrary length support with minimum working memory**: Succinct.rs provides virtually _arbitrary length_ of data structures. There are carefully designed to use as small memory space as possible.
+- **Arbitrary length support with minimum working memory**: Succinct.rs provides virtually _arbitrary size_ of data structures. There are carefully designed to use as small memory space as possible.
 - **Simple public APIs**: Each data structures almost only have very basic operations for the data structure. `succinct::BitVector`, for example, has only `access()`, `rank()`, and `select()`.
 - **Latest benchmark results are always accessible**: Succinct.rs is continuously benchmarked in Travis CI using [Criterion.rs](https://crates.io/crates/criterion). Graphical benchmark results are published [here](https://laysakura.github.io/succinct.rs/criterion/report/).
 
 ### [Succinct Bit Vector](https://laysakura.github.io/succinct.rs/succinct_rs/bit_vector/struct.BitVector.html) Complexity
 
-When the length of a `BitVector` is `N`:
+When the length of a `BitVector` is _N_:
 
 |                  | [build()](https://laysakura.github.io/succinct.rs/succinct_rs/bit_vector/struct.BitVectorBuilder.html#method.build) | [access()](https://laysakura.github.io/succinct.rs/succinct_rs/bit_vector/struct.BitVector.html#method.access) | [rank()](https://laysakura.github.io/succinct.rs/succinct_rs/bit_vector/struct.BitVector.html#method.rank) | [select()](https://laysakura.github.io/succinct.rs/succinct_rs/bit_vector/struct.BitVector.html#method.select) |
 |------------------|--------------------------------------------------------|------------|----------|------------|
@@ -97,6 +120,17 @@ When the length of a `BitVector` is `N`:
 | Space-complexity | _N + o(N)_                                             | _0_        | _O(log N)_   | _O(log N)_     |
 
 (Actually, `select()`'s time-complexity can be _O(1)_ with complex implementation but Succinct.rs, like many other libraries, uses binary search of `rank()`'s result).
+
+### [LOUDS](https://laysakura.github.io/succinct.rs/succinct_rs/louds/struct.Louds.html) Complexity
+
+When the number of nodes in the tree represented as LOUDS is _N_:
+
+|                  | [build()](https://laysakura.github.io/succinct.rs/succinct_rs/louds/struct.LoudsBuilder.html#method.build) | [node_num_to_index()](https://laysakura.github.io/succinct.rs/succinct_rs/louds/struct.Louds.html#method.node_num_to_index) | [index_to_node_num()](https://laysakura.github.io/succinct.rs/succinct_rs/louds/struct.Louds.html#method.index_to_node_num) | [child_to_parent()](https://laysakura.github.io/succinct.rs/succinct_rs/louds/struct.Louds.html#method.child_to_parent) | [parent_to_children()](https://laysakura.github.io/succinct.rs/succinct_rs/louds/struct.Louds.html#method.parent_to_children) |
+|------------------|--------------------------------------------------------|------------|----------|------------|----|
+| Time-complexity  | _O(N)_                                                 | _O(log N)_     | _O(1)_   | _O(1)_ | _O( max(log N, <u>max num of children a node has</u>) )_ |
+| Space-complexity | _N + o(N)_                                             | _O(log N)_        | _O(log N)_   | _O(log N)_     | _O( max(log N, <u>max num of children a node has</u>) )_ |
+
+(`node_num_to_index()` and `child_to_parent()` use [rank()](https://laysakura.github.io/succinct.rs/succinct_rs/bit_vector/struct.BitVector.html#method.rank). `index_to_node_num()` and `parent_to_children()` use [select()](https://laysakura.github.io/succinct.rs/succinct_rs/bit_vector/struct.BitVector.html#method.select)).
 
 ## Versions
 Succinct.rs uses [semantic versioning](http://semver.org/spec/v2.0.0.html).
@@ -121,7 +155,8 @@ Older versions may also work, but are not tested or guaranteed.
 Succinct.rs has plan to provide these succinct data structures.
 
 1. Succinct Bit Vector **(done)**
-2. [LOUDS](https://dl.acm.org/citation.cfm?id=1398646)
+2. [LOUDS](https://dl.acm.org/citation.cfm?id=1398646) **(doing)**
+    - Find out efficient API sets by applying LOUDS to [Trie](https://en.wikipedia.org/wiki/Trie) implementation.
 3. [SuRF](http://www.pdl.cmu.edu/PDL-FTP/Storage/surf_sigmod18.pdf)
 
 ## Contributing
