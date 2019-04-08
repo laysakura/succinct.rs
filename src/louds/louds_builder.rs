@@ -3,11 +3,14 @@ use crate::bit_vector::BitVectorBuilder;
 use crate::BitString;
 
 impl super::LoudsBuilder {
+    /// O(log N)
     pub fn from_bit_string(bs: BitString) -> LoudsBuilder {
+        LoudsBuilder::validate_lbs(&bs);
         let bv_builder = BitVectorBuilder::from_bit_string(bs);
         LoudsBuilder { bv_builder }
     }
 
+    /// O(log N)
     pub fn build(&self) -> Louds {
         let bv = self.bv_builder.build();
         // TODO How should we pass built bit string to validate_lbs() ?
@@ -23,7 +26,7 @@ impl super::LoudsBuilder {
     ///         - Each node is derived from one '1'.
     /// - In the range of _[0, <u>length of LBS</u>)_;
     ///     - _<u>the number of '0'</u> == <u>the number of '1'</u> + 1_
-    fn validate_lbs(bs: BitString) {
+    fn validate_lbs(bs: &BitString) {
         let s = bs.str();
 
         assert!(s.starts_with("10"));
@@ -59,7 +62,7 @@ mod validate_lbs_success_tests {
             fn $name() {
                 let s = $value;
                 let bs = BitString::new(s);
-                LoudsBuilder::validate_lbs(bs);
+                LoudsBuilder::validate_lbs(&bs);
             }
         )*
         }
@@ -85,7 +88,7 @@ mod validate_lbs_failure_tests {
             fn $name() {
                 let s = $value;
                 let bs = BitString::new(s);
-                LoudsBuilder::validate_lbs(bs);
+                LoudsBuilder::validate_lbs(&bs);
             }
         )*
         }
