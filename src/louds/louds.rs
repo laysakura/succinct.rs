@@ -3,7 +3,7 @@ use super::{Louds, LoudsIndex, LoudsNodeNum};
 impl Louds {
     /// # Panics
     /// `node_num` does not exist in this LOUDS.
-    pub fn node_num_to_index(&self, node_num: LoudsNodeNum) -> LoudsIndex {
+    pub fn node_num_to_index(&self, node_num: &LoudsNodeNum) -> LoudsIndex {
         assert!(node_num.value() > 0);
 
         let index = self.lbs.select(node_num.value()).expect(&format!(
@@ -15,7 +15,7 @@ impl Louds {
 
     /// # Panics
     /// `index` does not point to any node in this LOUDS.
-    pub fn index_to_node_num(&self, index: LoudsIndex) -> LoudsNodeNum {
+    pub fn index_to_node_num(&self, index: &LoudsIndex) -> LoudsNodeNum {
         self.validate_index(&index);
 
         let node_num = self.lbs.rank(index.value());
@@ -25,7 +25,7 @@ impl Louds {
     /// # Panics
     /// - `index` does not point to any node in this LOUDS.
     /// - `index == 0`: (node#1 is root and doesn't have parent)
-    pub fn child_to_parent(&self, index: LoudsIndex) -> LoudsNodeNum {
+    pub fn child_to_parent(&self, index: &LoudsIndex) -> LoudsNodeNum {
         self.validate_index(&index);
         assert!(index.value != 0, "node#1 is root and doesn't have parent");
 
@@ -35,7 +35,7 @@ impl Louds {
 
     /// # Panics
     /// `node_num` does not exist in this LOUDS.
-    pub fn parent_to_children(&self, node_num: LoudsNodeNum) -> Vec<LoudsIndex> {
+    pub fn parent_to_children(&self, node_num: &LoudsNodeNum) -> Vec<LoudsIndex> {
         assert!(node_num.value() > 0);
 
         let parent_start_index = self.lbs.select0(node_num.value()).expect(&format!(
@@ -81,7 +81,7 @@ mod node_num_to_index_success_tests {
                 let (in_s, node_num, expected_index) = $value;
                 let bs = BitString::new(in_s);
                 let louds = LoudsBuilder::from_bit_string(bs).build();
-                let index = louds.node_num_to_index(LoudsNodeNum::new(node_num));
+                let index = louds.node_num_to_index(&LoudsNodeNum::new(node_num));
                 assert_eq!(index, LoudsIndex::new(expected_index));
             }
         )*
@@ -122,7 +122,7 @@ mod node_num_to_index_failure_tests {
                 let (in_s, node_num) = $value;
                 let bs = BitString::new(in_s);
                 let louds = LoudsBuilder::from_bit_string(bs).build();
-                let _ = louds.node_num_to_index(LoudsNodeNum::new(node_num));
+                let _ = louds.node_num_to_index(&LoudsNodeNum::new(node_num));
             }
         )*
         }
@@ -152,7 +152,7 @@ mod index_to_node_num_success_tests {
                 let (in_s, index, expected_node_num) = $value;
                 let bs = BitString::new(in_s);
                 let louds = LoudsBuilder::from_bit_string(bs).build();
-                let node_num = louds.index_to_node_num(LoudsIndex::new(index));
+                let node_num = louds.index_to_node_num(&LoudsIndex::new(index));
                 assert_eq!(node_num, LoudsNodeNum::new(expected_node_num));
             }
         )*
@@ -193,7 +193,7 @@ mod index_to_node_num_failure_tests {
                 let (in_s, index) = $value;
                 let bs = BitString::new(in_s);
                 let louds = LoudsBuilder::from_bit_string(bs).build();
-                let _ = louds.index_to_node_num(LoudsIndex::new(index));
+                let _ = louds.index_to_node_num(&LoudsIndex::new(index));
             }
         )*
         }
@@ -237,7 +237,7 @@ mod child_to_parent_success_tests {
                 let (in_s, index, expected_parent) = $value;
                 let bs = BitString::new(in_s);
                 let louds = LoudsBuilder::from_bit_string(bs).build();
-                let parent = louds.child_to_parent(LoudsIndex::new(index));
+                let parent = louds.child_to_parent(&LoudsIndex::new(index));
                 assert_eq!(parent, LoudsNodeNum::new(expected_parent));
             }
         )*
@@ -273,7 +273,7 @@ mod child_to_parent_failure_tests {
                 let (in_s, index) = $value;
                 let bs = BitString::new(in_s);
                 let louds = LoudsBuilder::from_bit_string(bs).build();
-                let _ = louds.child_to_parent(LoudsIndex::new(index));
+                let _ = louds.child_to_parent(&LoudsIndex::new(index));
             }
         )*
         }
@@ -313,7 +313,7 @@ mod child_to_parent_failure_tests {
                 let in_s = $value;
                 let bs = BitString::new(in_s);
                 let louds = LoudsBuilder::from_bit_string(bs).build();
-                let _ = louds.child_to_parent(LoudsIndex::new(0));
+                let _ = louds.child_to_parent(&LoudsIndex::new(0));
             }
         )*
         }
@@ -338,7 +338,7 @@ mod parent_to_children_success_tests {
                 let (in_s, node_num, expected_children) = $value;
                 let bs = BitString::new(in_s);
                 let louds = LoudsBuilder::from_bit_string(bs).build();
-                let children = louds.parent_to_children(LoudsNodeNum::new(node_num));
+                let children = louds.parent_to_children(&LoudsNodeNum::new(node_num));
                 assert_eq!(children, expected_children.iter().map(|c| LoudsIndex::new(*c)).collect::<Vec<LoudsIndex>>());
             }
         )*
@@ -379,7 +379,7 @@ mod parent_to_children_failure_tests {
                 let (in_s, node_num) = $value;
                 let bs = BitString::new(in_s);
                 let louds = LoudsBuilder::from_bit_string(bs).build();
-                let _ = louds.parent_to_children(LoudsNodeNum::new(node_num));
+                let _ = louds.parent_to_children(&LoudsNodeNum::new(node_num));
             }
         )*
         }
