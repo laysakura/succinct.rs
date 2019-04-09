@@ -1,9 +1,7 @@
-use super::Block;
-
 impl super::Block {
     /// Constructor.
-    pub fn new(value: u16, length: u8) -> Block {
-        Block { value, length }
+    pub fn new(value: u16, length: u8) -> Self {
+        Self { value, length }
     }
 
     /// Returns a content (total rank to go) of the block.

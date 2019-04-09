@@ -1,6 +1,4 @@
-use super::{
-    BitString, Blocks, Chunks, SuccinctBitVector, SuccinctBitVectorBuilder, SuccinctBitVectorSeed,
-};
+use super::{BitString, Blocks, Chunks, SuccinctBitVector, SuccinctBitVectorSeed};
 use crate::internal_data_structure::popcount_table::PopcountTable;
 use crate::internal_data_structure::raw_bit_vector::RawBitVector;
 use std::collections::HashSet;
@@ -15,8 +13,8 @@ impl super::SuccinctBitVectorBuilder {
     }
 
     /// Prepares a bit vector from [BitString](struct.BitString.html) representation.
-    pub fn from_bit_string(bs: BitString) -> SuccinctBitVectorBuilder {
-        SuccinctBitVectorBuilder {
+    pub fn from_bit_string(bs: BitString) -> Self {
+        Self {
             seed: SuccinctBitVectorSeed::BitStr(bs),
             bits_set: HashSet::new(),
         }
@@ -85,7 +83,7 @@ impl super::SuccinctBitVectorBuilder {
 
 #[cfg(test)]
 mod builder_from_length_success_tests {
-    use super::SuccinctBitVectorBuilder;
+    use crate::SuccinctBitVectorBuilder;
 
     struct IndexBitPair(u64, bool);
 
@@ -150,7 +148,7 @@ mod builder_from_length_success_tests {
 
 #[cfg(test)]
 mod builder_from_length_failure_tests {
-    use super::SuccinctBitVectorBuilder;
+    use crate::SuccinctBitVectorBuilder;
 
     #[test]
     #[should_panic]
@@ -161,7 +159,7 @@ mod builder_from_length_failure_tests {
 
 #[cfg(test)]
 mod builder_from_bit_string_success_tests {
-    use super::{BitString, SuccinctBitVectorBuilder};
+    use crate::{BitString, SuccinctBitVectorBuilder};
 
     struct IndexBitPair(u64, bool);
 
@@ -279,7 +277,7 @@ mod builder_from_bit_string_failure_tests {
 
 #[cfg(test)]
 mod set_bit_success_tests {
-    use super::{BitString, SuccinctBitVectorBuilder};
+    use crate::{BitString, SuccinctBitVectorBuilder};
 
     struct IndexBitPair(u64, bool);
 
@@ -372,7 +370,7 @@ mod set_bit_success_tests {
 
 #[cfg(test)]
 mod builder_set_bit_failure_tests {
-    use super::SuccinctBitVectorBuilder;
+    use crate::SuccinctBitVectorBuilder;
 
     #[test]
     #[should_panic]

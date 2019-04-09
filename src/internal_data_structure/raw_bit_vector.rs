@@ -13,7 +13,7 @@ impl RawBitVector {
     ///
     /// # Panics
     /// When _`length` == 0_.
-    pub fn from_length(length: u64) -> RawBitVector {
+    pub fn from_length(length: u64) -> Self {
         assert!(length > 0, "length must be > 0.");
 
         let last_byte_len_or_0 = (length % 8) as u8;
@@ -23,14 +23,14 @@ impl RawBitVector {
             last_byte_len_or_0
         };
 
-        RawBitVector {
+        Self {
             byte_vec: vec![0; ((length - 1) / 8 + 1) as usize],
             last_byte_len,
         }
     }
 
     /// Makes a bit vector from `BitString` representation.
-    pub fn from_bit_string(bit_str: &BitString) -> RawBitVector {
+    pub fn from_bit_string(bit_str: &BitString) -> Self {
         let mut rbv = RawBitVector::from_length(bit_str.str().len() as u64);
         for (i, c) in bit_str.str().chars().enumerate() {
             if c == '1' {
@@ -98,7 +98,7 @@ impl RawBitVector {
     /// When:
     /// - _`i` + `size` >= `self.length()`_
     /// - _`size` == 0_
-    pub fn copy_sub(&self, i: u64, size: u64) -> RawBitVector {
+    pub fn copy_sub(&self, i: u64, size: u64) -> Self {
         self.validate_index(i);
         assert!(
             i + size <= self.length(),
@@ -158,7 +158,7 @@ impl RawBitVector {
             }
         }
 
-        RawBitVector {
+        Self {
             byte_vec: sub_byte_vec,
             last_byte_len: if size % 8 == 0 { 8 } else { (size % 8) as u8 },
         }
