@@ -7,7 +7,7 @@ readme = "README.md"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/laysakura/succinct.rs"
 homepage = "https://github.com/laysakura/succinct.rs"
-keywords = ["succinct", "succinct data structure", "succinct bit vector", "rank", "select", "LOUDS"]
+keywords = ["succinct", "succinct-data-structure", "succinct-bit-vector", "rank", "select", "louds"]
 categories = ["compression", "data-structures"]
 edition = "2018"
 
