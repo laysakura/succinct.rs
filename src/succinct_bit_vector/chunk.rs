@@ -1,11 +1,11 @@
-use super::{Blocks, Chunk};
+use super::Blocks;
 use crate::internal_data_structure::raw_bit_vector::RawBitVector;
 
 impl super::Chunk {
     /// Constructor.
-    pub fn new(value: u64, length: u16, rbv: &RawBitVector, i_chunk: u64) -> Chunk {
+    pub fn new(value: u64, length: u16, rbv: &RawBitVector, i_chunk: u64) -> Self {
         let blocks = Blocks::new(rbv, i_chunk, length);
-        Chunk {
+        Self {
             value,
             length,
             blocks,

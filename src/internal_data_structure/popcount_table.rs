@@ -16,7 +16,7 @@ impl PopcountTable {
     ///
     /// # Panics
     /// When `bit_length` is out of [1, 64].
-    pub fn new(bit_length: u8) -> PopcountTable {
+    pub fn new(bit_length: u8) -> Self {
         assert!(
             1 <= bit_length && bit_length <= 64,
             "bit_length (= {}) must be in [1, 64]",
@@ -26,7 +26,7 @@ impl PopcountTable {
         let table = (0..=(1 << bit_length) - 1)
             .map(|target: u64| target.count_ones() as u8)
             .collect();
-        PopcountTable { bit_length, table }
+        Self { bit_length, table }
     }
 
     /// Returns the same value as `target.count_ones()` in `O(1)`.

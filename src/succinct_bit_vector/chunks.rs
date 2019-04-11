@@ -3,7 +3,7 @@ use crate::internal_data_structure::raw_bit_vector::RawBitVector;
 
 impl super::Chunks {
     /// Constructor.
-    pub fn new(rbv: &RawBitVector) -> Chunks {
+    pub fn new(rbv: &RawBitVector) -> Self {
         let n = rbv.length();
         let chunk_size: u16 = Chunks::calc_chunk_size(n);
         let chunks_cnt: u64 = Chunks::calc_chunks_cnt(n);
@@ -45,7 +45,7 @@ impl super::Chunks {
             );
             chunks.push(chunk);
         }
-        Chunks { chunks, chunks_cnt }
+        Self { chunks, chunks_cnt }
     }
 
     /// Returns size of 1 chunk: _(log N)^2_.
