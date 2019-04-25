@@ -1,3 +1,12 @@
+# DEPRECATION WARNING
+
+This library is deprecated.
+This library has succinct bit vector (FID) and LOUDS implementation.
+
+These implementations are split into distinct libraries.
+
+Use [fid-rs](https://github.com/laysakura/fid-rs) and [louds-rs](https://github.com/laysakura/louds-rs) instead.
+
 # Succinct.rs
 
 Succinct Data Structures library for Rust.
