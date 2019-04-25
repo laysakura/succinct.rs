@@ -25,7 +25,7 @@ pub struct BitString {
 
 impl BitString {
     /// Constructor.
-    pub fn new(s: &str) -> BitString {
+    pub fn new(s: &str) -> Self {
         let parsed = s
             .chars()
             .filter(|c| match c {
@@ -38,7 +38,7 @@ impl BitString {
 
         assert!(!parsed.is_empty(), "`str` must contain any '0' or '1'.");
 
-        BitString {
+        Self {
             s: String::from(parsed),
         }
     }

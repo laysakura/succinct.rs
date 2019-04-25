@@ -17,7 +17,7 @@ impl super::LoudsBuilder {
     ///         - Each node is derived from one '1'.
     /// - In the range of _[0, <u>length of LBS</u>)_;
     ///     - _<u>the number of '0'</u> == <u>the number of '1'</u> + 1_
-    pub fn from_bit_string(bs: BitString) -> LoudsBuilder {
+    pub fn from_bit_string(bs: BitString) -> Self {
         LoudsBuilder::validate_lbs(&bs);
         let bv_builder = SuccinctBitVectorBuilder::from_bit_string(bs);
         LoudsBuilder { bv_builder }
