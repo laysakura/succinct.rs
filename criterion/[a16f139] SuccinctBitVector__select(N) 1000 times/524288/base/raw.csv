@@ -1,0 +1,11 @@
+group,function,value,sample_time_nanos,iteration_count
+[a16f139] SuccinctBitVector::select(N) 1000 times,,524288,5907182.0,2
+[a16f139] SuccinctBitVector::select(N) 1000 times,,524288,11832237.0,4
+[a16f139] SuccinctBitVector::select(N) 1000 times,,524288,18592219.0,6
+[a16f139] SuccinctBitVector::select(N) 1000 times,,524288,23720842.0,8
+[a16f139] SuccinctBitVector::select(N) 1000 times,,524288,29597247.0,10
+[a16f139] SuccinctBitVector::select(N) 1000 times,,524288,31718314.0,12
+[a16f139] SuccinctBitVector::select(N) 1000 times,,524288,36688048.0,14
+[a16f139] SuccinctBitVector::select(N) 1000 times,,524288,41881574.0,16
+[a16f139] SuccinctBitVector::select(N) 1000 times,,524288,47396021.0,18
+[a16f139] SuccinctBitVector::select(N) 1000 times,,524288,52432902.0,20

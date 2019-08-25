@@ -1,0 +1,11 @@
+group,function,value,sample_time_nanos,iteration_count
+"[a16f139] SuccinctBitVectorBuilder::from_bit_string(""00...(repeated N-times)"").build()",,1048576,63941067.0,6
+"[a16f139] SuccinctBitVectorBuilder::from_bit_string(""00...(repeated N-times)"").build()",,1048576,128119096.0,12
+"[a16f139] SuccinctBitVectorBuilder::from_bit_string(""00...(repeated N-times)"").build()",,1048576,192475779.0,18
+"[a16f139] SuccinctBitVectorBuilder::from_bit_string(""00...(repeated N-times)"").build()",,1048576,256563589.0,24
+"[a16f139] SuccinctBitVectorBuilder::from_bit_string(""00...(repeated N-times)"").build()",,1048576,320303953.0,30
+"[a16f139] SuccinctBitVectorBuilder::from_bit_string(""00...(repeated N-times)"").build()",,1048576,383982975.0,36
+"[a16f139] SuccinctBitVectorBuilder::from_bit_string(""00...(repeated N-times)"").build()",,1048576,447047610.0,42
+"[a16f139] SuccinctBitVectorBuilder::from_bit_string(""00...(repeated N-times)"").build()",,1048576,510333594.0,48
+"[a16f139] SuccinctBitVectorBuilder::from_bit_string(""00...(repeated N-times)"").build()",,1048576,580610198.0,54
+"[a16f139] SuccinctBitVectorBuilder::from_bit_string(""00...(repeated N-times)"").build()",,1048576,638671876.0,60

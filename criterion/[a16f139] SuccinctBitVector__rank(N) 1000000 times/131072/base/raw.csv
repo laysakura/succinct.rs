@@ -1,0 +1,11 @@
+group,function,value,sample_time_nanos,iteration_count
+[a16f139] SuccinctBitVector::rank(N) 1000000 times,,131072,98139889.0,1
+[a16f139] SuccinctBitVector::rank(N) 1000000 times,,131072,195545479.0,2
+[a16f139] SuccinctBitVector::rank(N) 1000000 times,,131072,294285891.0,3
+[a16f139] SuccinctBitVector::rank(N) 1000000 times,,131072,390946314.0,4
+[a16f139] SuccinctBitVector::rank(N) 1000000 times,,131072,488313414.0,5
+[a16f139] SuccinctBitVector::rank(N) 1000000 times,,131072,588032214.0,6
+[a16f139] SuccinctBitVector::rank(N) 1000000 times,,131072,684902516.0,7
+[a16f139] SuccinctBitVector::rank(N) 1000000 times,,131072,782347916.0,8
+[a16f139] SuccinctBitVector::rank(N) 1000000 times,,131072,880851154.0,9
+[a16f139] SuccinctBitVector::rank(N) 1000000 times,,131072,978718814.0,10

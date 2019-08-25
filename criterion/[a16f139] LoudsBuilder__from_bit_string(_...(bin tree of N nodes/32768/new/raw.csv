@@ -1,0 +1,11 @@
+group,function,value,sample_time_nanos,iteration_count
+"[a16f139] LoudsBuilder::from_bit_string(""...(bin tree of N nodes)"").build() 10 times",,32768,18770850.0,2
+"[a16f139] LoudsBuilder::from_bit_string(""...(bin tree of N nodes)"").build() 10 times",,32768,37596971.0,4
+"[a16f139] LoudsBuilder::from_bit_string(""...(bin tree of N nodes)"").build() 10 times",,32768,56448492.0,6
+"[a16f139] LoudsBuilder::from_bit_string(""...(bin tree of N nodes)"").build() 10 times",,32768,76321311.0,8
+"[a16f139] LoudsBuilder::from_bit_string(""...(bin tree of N nodes)"").build() 10 times",,32768,93626552.0,10
+"[a16f139] LoudsBuilder::from_bit_string(""...(bin tree of N nodes)"").build() 10 times",,32768,112645358.0,12
+"[a16f139] LoudsBuilder::from_bit_string(""...(bin tree of N nodes)"").build() 10 times",,32768,130858379.0,14
+"[a16f139] LoudsBuilder::from_bit_string(""...(bin tree of N nodes)"").build() 10 times",,32768,149721880.0,16
+"[a16f139] LoudsBuilder::from_bit_string(""...(bin tree of N nodes)"").build() 10 times",,32768,168479505.0,18
+"[a16f139] LoudsBuilder::from_bit_string(""...(bin tree of N nodes)"").build() 10 times",,32768,187442847.0,20

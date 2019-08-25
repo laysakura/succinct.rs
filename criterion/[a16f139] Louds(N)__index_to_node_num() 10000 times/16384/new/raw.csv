@@ -1,0 +1,11 @@
+group,function,value,sample_time_nanos,iteration_count
+[a16f139] Louds(N)::index_to_node_num() 10000 times,,16384,5529163.0,4
+[a16f139] Louds(N)::index_to_node_num() 10000 times,,16384,11032292.0,8
+[a16f139] Louds(N)::index_to_node_num() 10000 times,,16384,16553631.0,12
+[a16f139] Louds(N)::index_to_node_num() 10000 times,,16384,21855060.0,16
+[a16f139] Louds(N)::index_to_node_num() 10000 times,,16384,27404454.0,20
+[a16f139] Louds(N)::index_to_node_num() 10000 times,,16384,33124100.0,24
+[a16f139] Louds(N)::index_to_node_num() 10000 times,,16384,38321694.0,28
+[a16f139] Louds(N)::index_to_node_num() 10000 times,,16384,44212190.0,32
+[a16f139] Louds(N)::index_to_node_num() 10000 times,,16384,49095285.0,36
+[a16f139] Louds(N)::index_to_node_num() 10000 times,,16384,54635767.0,40

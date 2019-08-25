@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["BitString","Provides validated string representation of bit sequence."]]});

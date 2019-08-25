@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["SuccinctBitVector","Succinct bit vector."],["SuccinctBitVectorBuilder","Builder of SuccinctBitVector."]]});

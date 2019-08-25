@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Louds","LOUDS (Level-Order Unary Degree Sequence)."],["LoudsBuilder","The builder of Louds."],["LoudsIndex","Index of Louds tree."],["LoudsNodeNum","Node number of Louds tree."]]});

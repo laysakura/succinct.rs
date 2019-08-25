@@ -1,0 +1,11 @@
+group,function,value,sample_time_nanos,iteration_count
+[a16f139] SuccinctBitVectorBuilder::from_length(N).build(),,65536,89520624.0,236
+[a16f139] SuccinctBitVectorBuilder::from_length(N).build(),,65536,177133583.0,472
+[a16f139] SuccinctBitVectorBuilder::from_length(N).build(),,65536,266164572.0,708
+[a16f139] SuccinctBitVectorBuilder::from_length(N).build(),,65536,354921604.0,944
+[a16f139] SuccinctBitVectorBuilder::from_length(N).build(),,65536,442795165.0,1180
+[a16f139] SuccinctBitVectorBuilder::from_length(N).build(),,65536,539819236.0,1416
+[a16f139] SuccinctBitVectorBuilder::from_length(N).build(),,65536,630502765.0,1652
+[a16f139] SuccinctBitVectorBuilder::from_length(N).build(),,65536,710437767.0,1888
+[a16f139] SuccinctBitVectorBuilder::from_length(N).build(),,65536,798379693.0,2124
+[a16f139] SuccinctBitVectorBuilder::from_length(N).build(),,65536,887110643.0,2360
